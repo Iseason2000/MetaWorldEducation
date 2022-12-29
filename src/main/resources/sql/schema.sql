@@ -53,3 +53,49 @@ CREATE TABLE IF NOT EXISTS `apply_record`
     `result`     int      NOT NULL,
     PRIMARY KEY (`apply_id`)
 );
+
+CREATE TABLE IF NOT EXISTS `activity_info`
+(
+    `activity_id`         int          NOT NULL,
+    `player_id`           int          NOT NULL,
+    `scene_id`            int          NOT NULL,
+    `player_name`         varchar(255) NOT NULL,
+    `activity_name`       varchar(255) NOT NULL,
+    `create_time`         datetime     NOT NULL,
+    `start_time`          datetime     NOT NULL,
+    `end_time`            datetime     NOT NULL,
+    `activity_type`       int          NOT NULL,
+    `activity_permission` int          NOT NULL,
+    `activity_password`   varchar(255) NOT NULL,
+    `current_player`      int          NULL,
+    `max_player`          int          NULL,
+    PRIMARY KEY (`activity_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `msg_record`
+(
+    `msg_id`      int      NOT NULL AUTO_INCREMENT,
+    `sender_id`   int      NOT NULL,
+    `receive_id`  int      NOT NULL,
+    `scene_id`    int      NULL,
+    `activity_id` int      NULL,
+    `create_time` datetime NOT NULL,
+    `msg`         text     NOT NULL,
+    `is_read`     int      NOT NULL,
+    PRIMARY KEY (`msg_id`),
+    INDEX `index_all` (`sender_id`, `receive_id`, `scene_id`, `activity_id`),
+    CONSTRAINT `sender` FOREIGN KEY (`sender_id`) REFERENCES `player_info` (`player_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+    CONSTRAINT `receiver` FOREIGN KEY (`receive_id`) REFERENCES `player_info` (`player_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+    CONSTRAINT `activity` FOREIGN KEY (`activity_id`) REFERENCES `activity_info` (`activity_id`) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+CREATE TABLE `activity_player`
+(
+    `ap_id`       int NOT NULL,
+    `activity_id` int NOT NULL,
+    `player_id`   int NOT NULL,
+    PRIMARY KEY (`ap_id`),
+    UNIQUE INDEX `all` (`ap_id`, `activity_id`, `player_id`),
+    CONSTRAINT `activity` FOREIGN KEY (`activity_id`) REFERENCES `activity_info` (`activity_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+    CONSTRAINT `player` FOREIGN KEY (`player_id`) REFERENCES `player_info` (`player_id`) ON DELETE CASCADE ON UPDATE NO ACTION
+);

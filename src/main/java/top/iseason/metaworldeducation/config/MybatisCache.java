@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class MybatisCache implements org.apache.ibatis.cache.Cache {
 
     private static final Cache<Object, Object> cache = Caffeine.newBuilder()
-            .expireAfterAccess(5, TimeUnit.MINUTES)
+            .expireAfterAccess(5, TimeUnit.SECONDS)
             .maximumSize(1200)
             .softValues()
             .build();

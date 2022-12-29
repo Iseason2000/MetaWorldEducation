@@ -33,6 +33,12 @@ public enum ResultCode {
     USER_ACCOUNT_USE_BY_OTHERS(2009, "账号下线"),
     USER_NOT_EXIST(2201, "用户ID不存在"),
 
+    ROOM_NOT_EXIST(2301, "房间不存在"),
+    ROOM_ALREADY_JOINED(2302, "你已在房间中，无法加入另一个房间"),
+    ROOM_NOT_JOINED(2303, "你不在房间中"),
+    ROOM_IS_FULL(2304, "房间已满"),
+    ROOM_PASSWORD_ERROR(2305, "房间密码错误"),
+
     /* 业务错误 */
     NO_PERMISSION(9001, "没有权限");
 

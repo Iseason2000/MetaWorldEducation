@@ -12,6 +12,8 @@ import springfox.documentation.annotations.ApiIgnore;
 import top.iseason.metaworldeducation.entity.ApplyRecord;
 import top.iseason.metaworldeducation.entity.PlayerInfo;
 import top.iseason.metaworldeducation.entity.UserFriendInfo;
+import top.iseason.metaworldeducation.mapper.ActivityInfoMapper;
+import top.iseason.metaworldeducation.mapper.ActivityPlayerMapper;
 import top.iseason.metaworldeducation.mapper.ApplyRecordMapper;
 import top.iseason.metaworldeducation.mapper.UserFriendInfoMapper;
 import top.iseason.metaworldeducation.service.PlayerService;
@@ -35,6 +37,10 @@ public class PlayerController {
     ApplyRecordMapper applyRecordMapper;
     @Resource
     UserFriendInfoMapper userFriendInfoMapper;
+    @Resource
+    ActivityInfoMapper activityInfoMapper;
+    @Resource
+    ActivityPlayerMapper activityPlayerMapper;
 
     @ApiOperation("更新玩家外观信息接口.")
     @PostMapping("/UpdateUserInfo")
@@ -66,6 +72,7 @@ public class PlayerController {
         if (blouseIndex != null) playerInfo.setBlouseIndex(blouseIndex);
         if (trousersIndex != null) playerInfo.setTrousersIndex(trousersIndex);
         if (shoeIndex != null) playerInfo.setShoeIndex(shoeIndex);
+        playerInfo.setUpdateTime(new Date());
         try {
             playerService.updateById(playerInfo);
         } catch (Exception e) {
@@ -110,6 +117,7 @@ public class PlayerController {
 //        if (usrPwd != null) playerInfo.setUsrPwd(usrPwd);
         if (sceneID != null) playerInfo.setSceneId(sceneID);
         if (activityID != null) playerInfo.setActivityId(activityID);
+        playerInfo.setUpdateTime(new Date());
         try {
             playerService.updateById(playerInfo);
         } catch (Exception e) {
@@ -127,25 +135,6 @@ public class PlayerController {
         return Result.success(byId);
     }
 
-    @ApiOperation("获取同一个场景同一个活动的其他玩家")
-    @GetMapping("/GetOtherPlayerInfos")
-    public Result getOtherPlayerInfos(@ApiIgnore Authentication authentication) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
-        if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
-        Integer sceneId = playerInfo.getSceneId();
-        if (sceneId == null) return Result.of(3001, "玩家不在场景中");
-        Integer activityId = playerInfo.getActivityId();
-        if (activityId == null) return Result.of(3002, "玩家不在活动中");
-        List<PlayerInfo> list = playerService.list(new LambdaQueryWrapper<PlayerInfo>()
-                .eq(PlayerInfo::getSceneId, sceneId)
-                .eq(PlayerInfo::getActivityId, activityId));
-        list.remove(playerInfo);
-        //脱敏
-        for (PlayerInfo info : list) {
-            info.setUsrPwd(null);
-        }
-        return Result.success(list);
-    }
 
     @ApiOperation("向某个玩家发起好友请求")
     @PostMapping("/AddApplyRecord")
@@ -235,7 +224,7 @@ public class PlayerController {
     }
 
     @ApiOperation("删除好友")
-    @GetMapping("/RemoveFriend")
+    @DeleteMapping("/RemoveFriend")
     public Result removeFriends(@ApiIgnore Authentication authentication,
                                 @ApiParam("朋友id") @RequestParam Integer friendId
     ) {
@@ -249,4 +238,6 @@ public class PlayerController {
             return Result.success();
         } else return Result.failure();
     }
+
+
 }
