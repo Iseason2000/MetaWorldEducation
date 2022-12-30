@@ -13,7 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.web.cors.CorsConfiguration;
 import top.iseason.metaworldeducation.entity.PlayerInfo;
-import top.iseason.metaworldeducation.service.PlayerService;
+import top.iseason.metaworldeducation.mapper.PlayerMapper;
 import top.iseason.metaworldeducation.util.Result;
 import top.iseason.metaworldeducation.util.ResultCode;
 
@@ -25,7 +25,7 @@ import java.util.Date;
 public class SecurityConfig {
 
     @Resource
-    private PlayerService playerService;
+    private PlayerMapper playerMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .permitAll()
                 .successHandler((request, response, authentication) -> {
                     response.setContentType("text/json;charset=utf-8");
-                    PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+                    PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
                     playerInfo.setUpdateTime(new Date());
                     playerInfo.setUsrPwd(null);
                     response.getWriter().write(Result.of(ResultCode.USER_LOGIN_SUCCESS, playerInfo).toString());
@@ -85,6 +85,7 @@ public class SecurityConfig {
                 .userDetailsService(userDetailsService())
                 .authorizeRequests()
                 .antMatchers("/player/**").hasAnyRole("PLAYER")
+                .antMatchers("/room/**").hasAnyRole("PLAYER")
                 .antMatchers("/public/**").permitAll()
 
 //                .antMatchers("/doc.html").permitAll()
@@ -113,7 +114,7 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
-            PlayerInfo player = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, username));
+            PlayerInfo player = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, username));
             if (player == null) throw new UsernameNotFoundException(username);
             return player.toUser();
         };

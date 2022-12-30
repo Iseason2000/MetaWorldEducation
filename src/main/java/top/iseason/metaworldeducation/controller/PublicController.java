@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import top.iseason.metaworldeducation.entity.PlayerInfo;
-import top.iseason.metaworldeducation.service.PlayerService;
+import top.iseason.metaworldeducation.mapper.PlayerMapper;
 import top.iseason.metaworldeducation.util.Result;
 import top.iseason.metaworldeducation.util.ResultCode;
 
@@ -21,7 +21,7 @@ import java.util.Date;
 @RequestMapping("/public")
 public class PublicController {
     @Resource
-    PlayerService playerService;
+    PlayerMapper playerMapper;
     @Resource
     PasswordEncoder passwordEncoder;
 
@@ -47,7 +47,7 @@ public class PublicController {
                 .setUsrPwd(passwordEncoder.encode(password))
                 .setPlayerName(playerName);
         try {
-            playerService.save(playerInfo);
+            playerMapper.insert(playerInfo);
         } catch (Exception e) {
             return Result.of(ResultCode.USER_ACCOUNT_ALREADY_EXIST);
         }

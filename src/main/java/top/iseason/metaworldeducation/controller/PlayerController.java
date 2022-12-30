@@ -12,11 +12,9 @@ import springfox.documentation.annotations.ApiIgnore;
 import top.iseason.metaworldeducation.entity.ApplyRecord;
 import top.iseason.metaworldeducation.entity.PlayerInfo;
 import top.iseason.metaworldeducation.entity.UserFriendInfo;
-import top.iseason.metaworldeducation.mapper.ActivityInfoMapper;
-import top.iseason.metaworldeducation.mapper.ActivityPlayerMapper;
 import top.iseason.metaworldeducation.mapper.ApplyRecordMapper;
+import top.iseason.metaworldeducation.mapper.PlayerMapper;
 import top.iseason.metaworldeducation.mapper.UserFriendInfoMapper;
-import top.iseason.metaworldeducation.service.PlayerService;
 import top.iseason.metaworldeducation.util.Result;
 import top.iseason.metaworldeducation.util.ResultCode;
 
@@ -30,17 +28,12 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/player")
 public class PlayerController {
-
     @Resource
-    PlayerService playerService;
+    PlayerMapper playerMapper;
     @Resource
     ApplyRecordMapper applyRecordMapper;
     @Resource
     UserFriendInfoMapper userFriendInfoMapper;
-    @Resource
-    ActivityInfoMapper activityInfoMapper;
-    @Resource
-    ActivityPlayerMapper activityPlayerMapper;
 
     @ApiOperation("更新玩家外观信息接口.")
     @PostMapping("/UpdateUserInfo")
@@ -58,7 +51,7 @@ public class PlayerController {
                              @ApiParam("裤子") @RequestParam(required = false) Integer trousersIndex,
                              @ApiParam("鞋子") @RequestParam(required = false) Integer shoeIndex
     ) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         if (identityName != null) playerInfo.setIdentityName(identityName);
         if (hairType != null) playerInfo.setHairType(hairType);
@@ -74,7 +67,7 @@ public class PlayerController {
         if (shoeIndex != null) playerInfo.setShoeIndex(shoeIndex);
         playerInfo.setUpdateTime(new Date());
         try {
-            playerService.updateById(playerInfo);
+            playerMapper.updateById(playerInfo);
         } catch (Exception e) {
             return Result.failure();
         }
@@ -100,7 +93,7 @@ public class PlayerController {
                                  @ApiParam("用户当前的场景") @RequestParam(required = false) Integer sceneID,
                                  @ApiParam("用户当前参加的活动") @RequestParam(required = false) Integer activityID
     ) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         if (posX != null) playerInfo.setPosX(posX);
         if (posY != null) playerInfo.setPosY(posY);
@@ -119,7 +112,7 @@ public class PlayerController {
         if (activityID != null) playerInfo.setActivityId(activityID);
         playerInfo.setUpdateTime(new Date());
         try {
-            playerService.updateById(playerInfo);
+            playerMapper.updateById(playerInfo);
         } catch (Exception e) {
             return Result.failure();
         }
@@ -129,7 +122,7 @@ public class PlayerController {
     @ApiOperation("由id获取玩家信息")
     @GetMapping("/GetPlayerInfoByPlayerID")
     public Result getPlayerInfo(@ApiParam("玩家id") @RequestParam Integer id) {
-        PlayerInfo byId = playerService.getById(id);
+        PlayerInfo byId = playerMapper.selectById(id);
         if (byId == null) return Result.of(ResultCode.USER_NOT_EXIST);
         byId.setUsrPwd(null);
         return Result.success(byId);
@@ -139,7 +132,7 @@ public class PlayerController {
     @ApiOperation("向某个玩家发起好友请求")
     @PostMapping("/AddApplyRecord")
     public Result AddApplyRecord(@ApiIgnore Authentication authentication, @ApiParam("目标玩家id") @RequestParam Integer receiver) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         ApplyRecord applyRecord = new ApplyRecord();
         applyRecord.setApplyTime(new Date());
@@ -159,7 +152,7 @@ public class PlayerController {
                                   @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
                                   @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
     ) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         if (page == null) page = 0;
         if (count == null) count = 10;
@@ -174,7 +167,7 @@ public class PlayerController {
                                  @ApiParam("请求id") @RequestParam Integer requestId,
                                  @ApiParam("状态,0未处理,1接受,-1拒绝") @RequestParam Integer state
     ) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         ApplyRecord applyRecord = applyRecordMapper.selectById(requestId);
         if (applyRecord == null) return Result.of(3004, "请求不存在!");
@@ -209,13 +202,14 @@ public class PlayerController {
                              @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
                              @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
     ) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         if (page == null) page = 0;
         if (count == null) count = 10;
         List<UserFriendInfo> userFriendInfos = userFriendInfoMapper.selectList(new LambdaQueryWrapper<UserFriendInfo>().eq(UserFriendInfo::getUserId, playerInfo.getPlayerId()).last("limit " + page * count + "," + count));
+        if (userFriendInfos.isEmpty()) return Result.success(userFriendInfos);
         List<Integer> collect = userFriendInfos.stream().map(UserFriendInfo::getFriendId).collect(Collectors.toList());
-        List<PlayerInfo> playerInfos = playerService.listByIds(collect);
+        List<PlayerInfo> playerInfos = playerMapper.selectBatchIds(collect);
         //脱敏
         for (PlayerInfo info : playerInfos) {
             info.setUsrPwd(null);
@@ -228,7 +222,7 @@ public class PlayerController {
     public Result removeFriends(@ApiIgnore Authentication authentication,
                                 @ApiParam("朋友id") @RequestParam Integer friendId
     ) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         int delete = userFriendInfoMapper.delete(new LambdaQueryWrapper<UserFriendInfo>()
                 .eq(UserFriendInfo::getUserId, playerInfo.getPlayerId())

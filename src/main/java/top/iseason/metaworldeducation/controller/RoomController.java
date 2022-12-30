@@ -1,6 +1,7 @@
 package top.iseason.metaworldeducation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -14,7 +15,7 @@ import top.iseason.metaworldeducation.entity.ActivityPlayer;
 import top.iseason.metaworldeducation.entity.PlayerInfo;
 import top.iseason.metaworldeducation.mapper.ActivityInfoMapper;
 import top.iseason.metaworldeducation.mapper.ActivityPlayerMapper;
-import top.iseason.metaworldeducation.service.PlayerService;
+import top.iseason.metaworldeducation.mapper.PlayerMapper;
 import top.iseason.metaworldeducation.util.DateUtil;
 import top.iseason.metaworldeducation.util.Result;
 import top.iseason.metaworldeducation.util.ResultCode;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/room")
 public class RoomController {
     @Resource
-    PlayerService playerService;
+    PlayerMapper playerMapper;
     @Resource
     ActivityInfoMapper activityInfoMapper;
     @Resource
@@ -40,15 +41,16 @@ public class RoomController {
     @ApiOperation("获取同一个房间的其他玩家")
     @GetMapping("/GetOtherPlayerInfos")
     public Result getOtherPlayerInfos(@ApiIgnore Authentication authentication) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         Integer sceneId = playerInfo.getSceneId();
         if (sceneId == null) return Result.of(3001, "玩家不在场景中");
         Integer activityId = playerInfo.getActivityId();
         if (activityId == null) return Result.of(3002, "玩家不在活动中");
         List<ActivityPlayer> activityPlayers = activityPlayerMapper.selectList(new LambdaQueryWrapper<ActivityPlayer>().eq(ActivityPlayer::getActivityId, activityId));
+        if (activityPlayers.isEmpty()) return Result.success(activityPlayers);
         List<Integer> collect = activityPlayers.stream().map(ActivityPlayer::getPlayerId).collect(Collectors.toList());
-        List<PlayerInfo> list = playerService.getBaseMapper().selectBatchIds(collect);
+        List<PlayerInfo> list = playerMapper.selectBatchIds(collect);
         list.remove(playerInfo);
         //脱敏
         for (PlayerInfo info : list) {
@@ -65,12 +67,12 @@ public class RoomController {
             @ApiParam("房间名称,限长255") @RequestParam String activityName,
             @ApiParam("开始时间,格式 yyyy-MM-dd HH:mm:ss") @RequestParam String startTime,
             @ApiParam("结束时间,格式 yyyy-MM-dd HH:mm:ss") @RequestParam String endTime,
-            @ApiParam("房间类型, 0为自由、1为公开、2为非公开") @RequestParam Integer activityType,
+            @ApiParam("房间类型, 0为课程、1为游览、2为实验") @RequestParam Integer activityType,
             @ApiParam("可见性类型, 0为公开、1私有") @RequestParam Integer activityPermission,
             @ApiParam("私有房间密码") @RequestParam(required = false) String activityPassword,
             @ApiParam("最大玩家数, 不设置则无限制") @RequestParam(required = false) Integer maxPlayer
     ) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         if (activityName.length() > 255) return Result.of(999, "房间名称过长");
         Date start, end;
@@ -122,7 +124,7 @@ public class RoomController {
             @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
             @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
     ) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         if (page == null) page = 0;
         if (count == null) count = 10;
@@ -156,7 +158,7 @@ public class RoomController {
             @ApiIgnore Authentication authentication,
             @ApiParam("房间ID") @RequestParam(required = false) Integer activityId
     ) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         ActivityInfo activityInfo = activityInfoMapper.selectById(activityId);
         if (activityInfo == null) return Result.of(ResultCode.ROOM_NOT_EXIST);
@@ -170,43 +172,44 @@ public class RoomController {
     @PostMapping("/EditRoom")
     public Result editRoom(
             @ApiIgnore Authentication authentication,
-            @ApiParam("房间ID") @RequestParam(required = false) Integer activityId,
-            @ApiParam("房间名称,限长255") @RequestParam String activityName,
-            @ApiParam("开始时间,格式 yyyy-MM-dd HH:mm:ss") @RequestParam String startTime,
-            @ApiParam("结束时间,格式 yyyy-MM-dd HH:mm:ss") @RequestParam String endTime,
-            @ApiParam("房间类型, 0为自由、1为公开、2为非公开") @RequestParam Integer activityType,
-            @ApiParam("可见性类型, 0为公开、1私有") @RequestParam Integer activityPermission,
+            @ApiParam("房间ID") @RequestParam Integer activityId,
+            @ApiParam("场景ID") @RequestParam(required = false) Integer sceneId,
+            @ApiParam("房间名称,限长255") @RequestParam(required = false) String activityName,
+            @ApiParam("开始时间,格式 yyyy-MM-dd HH:mm:ss") @RequestParam(required = false) String startTime,
+            @ApiParam("结束时间,格式 yyyy-MM-dd HH:mm:ss") @RequestParam(required = false) String endTime,
+            @ApiParam("房间类型, 0为自由、1为公开、2为非公开") @RequestParam(required = false) Integer activityType,
+            @ApiParam("可见性类型, 0为公开、1私有") @RequestParam(required = false) Integer activityPermission,
             @ApiParam("私有房间密码") @RequestParam(required = false) String activityPassword,
             @ApiParam("最大玩家数, 不设置则无限制") @RequestParam(required = false) Integer maxPlayer
     ) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         ActivityInfo activityInfo = activityInfoMapper.selectById(activityId);
         if (activityInfo == null) return Result.of(ResultCode.ROOM_NOT_EXIST);
         if (!Objects.equals(activityInfo.getPlayerId(), playerInfo.getPlayerId()))
             return Result.of(ResultCode.NO_PERMISSION);
         if (activityName.length() > 255) return Result.of(999, "房间名称过长");
-        Date start, end;
+        Date start = null, end = null;
         try {
-            start = DateUtil.toDate(startTime);
+            if (startTime != null)
+                start = DateUtil.toDate(startTime);
         } catch (Exception e) {
             return Result.of(999, "开始时间格式错误!");
         }
         try {
-            end = DateUtil.toDate(endTime);
+            if (endTime != null)
+                end = DateUtil.toDate(endTime);
         } catch (Exception e) {
             return Result.of(999, "结束时间格式错误!");
         }
-        activityInfo.setActivityName(activityName);
-        activityInfo.setCreateTime(new Date());
-        activityInfo.setStartTime(start);
-        activityInfo.setEndTime(end);
-        activityInfo.setPlayerId(playerInfo.getPlayerId());
-        activityInfo.setPlayerName(playerInfo.getPlayerName());
-        activityInfo.setActivityType(activityType);
-        activityInfo.setMaxPlayer(maxPlayer);
-        activityInfo.setActivityPermission(activityPermission);
-        activityInfo.setActivityPassword(activityPassword == null ? "" : activityPassword);
+        if (activityName != null) activityInfo.setActivityName(activityName);
+        if (start != null) activityInfo.setStartTime(start);
+        if (end != null) activityInfo.setEndTime(end);
+        if (activityType != null) activityInfo.setActivityType(activityType);
+        if (sceneId != null) activityInfo.setSceneId(sceneId);
+        if (maxPlayer != null) activityInfo.setMaxPlayer(maxPlayer);
+        if (activityPermission != null) activityInfo.setActivityPermission(activityPermission);
+        if (activityPassword != null) activityInfo.setActivityPassword(activityPassword);
         activityInfoMapper.updateById(activityInfo);
         return Result.success(activityInfo);
     }
@@ -219,7 +222,7 @@ public class RoomController {
             @ApiParam("房间ID") @RequestParam(required = false) Integer activityId,
             @ApiParam("房间密码，如果房间为私密则必填") @RequestParam(required = false) String activityPassword
     ) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         if (playerInfo.getActivityId() != null) return Result.of(ResultCode.ROOM_ALREADY_JOINED);
         ActivityInfo activityInfo = activityInfoMapper.selectById(activityId);
@@ -233,7 +236,7 @@ public class RoomController {
         activityInfoMapper.updateById(activityInfo);
         playerInfo.setActivityId(activityId);
         playerInfo.setSceneId(activityInfo.getSceneId());
-        playerService.updateById(playerInfo);
+        playerMapper.updateById(playerInfo);
         ActivityPlayer activityPlayer = new ActivityPlayer();
         activityPlayer.setActivityId(activityId);
         activityPlayer.setPlayerId(playerInfo.getPlayerId());
@@ -245,24 +248,26 @@ public class RoomController {
     @ApiOperation("退出当前的房间,会同步更新玩家信息")
     @PostMapping("/QuitRoom")
     public Result quitRoom(@ApiIgnore Authentication authentication) {
-        PlayerInfo playerInfo = playerService.getOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         if (playerInfo.getActivityId() == null) return Result.of(ResultCode.ROOM_NOT_JOINED);
         ActivityInfo activityInfo = activityInfoMapper.selectById(playerInfo.getActivityId());
-        playerInfo.setActivityId(null);
-        playerInfo.setSceneId(null);
-        playerInfo.setPosX(null);
-        playerInfo.setPosY(null);
-        playerInfo.setPosZ(null);
-        playerInfo.setRoaX(null);
-        playerInfo.setRoaY(null);
-        playerInfo.setRoaZ(null);
-        playerInfo.setMoveSpeed(null);
-        playerInfo.setRotateSpeed(null);
+        LambdaUpdateWrapper<PlayerInfo> wrapper = new LambdaUpdateWrapper<PlayerInfo>()
+                .set(PlayerInfo::getActivityId, null)
+                .set(PlayerInfo::getSceneId, null)
+                .set(PlayerInfo::getPosX, null)
+                .set(PlayerInfo::getPosY, null)
+                .set(PlayerInfo::getPosZ, null)
+                .set(PlayerInfo::getRoaX, null)
+                .set(PlayerInfo::getRoaY, null)
+                .set(PlayerInfo::getRoaZ, null)
+                .set(PlayerInfo::getMoveSpeed, null)
+                .set(PlayerInfo::getRotateSpeed, null)
+                .eq(PlayerInfo::getPlayerId, playerInfo.getPlayerId());
         activityInfo.setCurrentPlayer(activityInfo.getCurrentPlayer() - 1);
         activityPlayerMapper.delete(new LambdaQueryWrapper<ActivityPlayer>().eq(ActivityPlayer::getPlayerId, playerInfo.getPlayerId()));
         activityInfoMapper.updateById(activityInfo);
-        playerService.updateById(playerInfo);
+        playerMapper.update(null, wrapper);
         return Result.success();
     }
 }
