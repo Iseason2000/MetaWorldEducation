@@ -6,6 +6,6 @@ import org.apache.ibatis.annotations.Mapper;
 import top.iseason.metaworldeducation.entity.PlayerInfo;
 
 @Mapper
-@CacheNamespace()
+@CacheNamespace
 public interface PlayerMapper extends BaseMapper<PlayerInfo> {
 }

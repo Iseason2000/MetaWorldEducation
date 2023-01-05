@@ -39,7 +39,7 @@ public class RoomController {
     ActivityPlayerMapper activityPlayerMapper;
 
     @ApiOperation("获取同一个房间的其他玩家")
-    @GetMapping("/GetOtherPlayerInfos")
+    @GetMapping("/getOtherPlayerInfos")
     public Result getOtherPlayerInfos(@ApiIgnore Authentication authentication) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
@@ -60,7 +60,7 @@ public class RoomController {
     }
 
     @ApiOperation("创建房间/活动")
-    @PostMapping("/CreateRoom")
+    @PostMapping("/createRoom")
     public Result createRoom(
             @ApiIgnore Authentication authentication,
             @ApiParam("场景ID") @RequestParam Integer sceneId,
@@ -103,7 +103,7 @@ public class RoomController {
     }
 
     @ApiOperation("获取房间/活动列表")
-    @GetMapping("/GetRooms")
+    @GetMapping("/getRooms")
     public Result getRooms(
             @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
             @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
@@ -118,7 +118,7 @@ public class RoomController {
     }
 
     @ApiOperation("获取自己的房间/活动列表")
-    @GetMapping("/GetMyRooms")
+    @GetMapping("/getMyRooms")
     public Result getMyRooms(
             @ApiIgnore Authentication authentication,
             @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
@@ -135,7 +135,7 @@ public class RoomController {
     }
 
     @ApiOperation("按房间名称搜索房间")
-    @GetMapping("/SearchRooms")
+    @GetMapping("/searchRooms")
     public Result searchRooms(
             @ApiParam("房间名称") @RequestParam(required = false) String name,
             @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
@@ -153,7 +153,7 @@ public class RoomController {
     }
 
     @ApiOperation("删除自己创建的房间")
-    @DeleteMapping("/RemoveRoom")
+    @DeleteMapping("/removeRoom")
     public Result searchRoom(
             @ApiIgnore Authentication authentication,
             @ApiParam("房间ID") @RequestParam(required = false) Integer activityId
@@ -169,7 +169,7 @@ public class RoomController {
     }
 
     @ApiOperation("修改自己的房间信息")
-    @PostMapping("/EditRoom")
+    @PostMapping("/editRoom")
     public Result editRoom(
             @ApiIgnore Authentication authentication,
             @ApiParam("房间ID") @RequestParam Integer activityId,
@@ -216,7 +216,7 @@ public class RoomController {
 
     @Transactional
     @ApiOperation("加入一个房间")
-    @PostMapping("/JoinRoom")
+    @PostMapping("/joinRoom")
     public Result joinRoom(
             @ApiIgnore Authentication authentication,
             @ApiParam("房间ID") @RequestParam(required = false) Integer activityId,
@@ -246,7 +246,7 @@ public class RoomController {
 
     @Transactional
     @ApiOperation("退出当前的房间,会同步更新玩家信息")
-    @PostMapping("/QuitRoom")
+    @PostMapping("/quitRoom")
     public Result quitRoom(@ApiIgnore Authentication authentication) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
@@ -264,10 +264,11 @@ public class RoomController {
                 .set(PlayerInfo::getMoveSpeed, null)
                 .set(PlayerInfo::getRotateSpeed, null)
                 .eq(PlayerInfo::getPlayerId, playerInfo.getPlayerId());
+        playerMapper.update(null, wrapper);
         activityInfo.setCurrentPlayer(activityInfo.getCurrentPlayer() - 1);
         activityPlayerMapper.delete(new LambdaQueryWrapper<ActivityPlayer>().eq(ActivityPlayer::getPlayerId, playerInfo.getPlayerId()));
         activityInfoMapper.updateById(activityInfo);
-        playerMapper.update(null, wrapper);
         return Result.success();
     }
 }
+

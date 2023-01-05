@@ -6,6 +6,6 @@ import org.apache.ibatis.annotations.Mapper;
 import top.iseason.metaworldeducation.entity.UserFriendInfo;
 
 @Mapper
-@CacheNamespace()
+@CacheNamespace
 public interface UserFriendInfoMapper extends BaseMapper<UserFriendInfo> {
 }

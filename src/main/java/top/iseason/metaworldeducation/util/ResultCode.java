@@ -22,7 +22,7 @@ public enum ResultCode {
     USER_LOGIN_SUCCESS(2100, "登录成功"),
     USER_LOGOUT_SUCCESS(2101, "退出成功"),
     USER_REGISTER_SUCCESS(2102, "注册成功"),
-    USER_NOT_LOGIN(2001, "用户未登录"),
+    USER_NOT_LOGIN(401, "用户未登录"),
     USER_ACCOUNT_EXPIRED(2002, "账号已过期"),
     USER_CREDENTIALS_ERROR(2003, "用户名或密码错误"),
     USER_CREDENTIALS_EXPIRED(2004, "密码过期"),

@@ -84,8 +84,9 @@ public class SecurityConfig {
                 .and()
                 .userDetailsService(userDetailsService())
                 .authorizeRequests()
-                .antMatchers("/player/**").hasAnyRole("PLAYER")
-                .antMatchers("/room/**").hasAnyRole("PLAYER")
+                .antMatchers("/player/**").hasAnyRole("PLAYER", "ADMIN")
+                .antMatchers("/room/**").hasAnyRole("PLAYER", "ADMIN")
+                .antMatchers("/message/**").hasAnyRole("PLAYER", "ADMIN")
                 .antMatchers("/public/**").permitAll()
 
 //                .antMatchers("/doc.html").permitAll()

@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `player_info`
     `blouse_index`   int          NULL,
     `trousers_index` int          NULL,
     `shoe_index`     int          NULL,
+    `role`           varchar(255) NULL,
     PRIMARY KEY (`player_id`),
     UNIQUE INDEX `register` (`usr_name`),
     INDEX `query` (`player_id`, `usr_name`, `scene_id`, `activity_id`)
@@ -99,3 +100,18 @@ CREATE TABLE IF NOT EXISTS `activity_player`
     CONSTRAINT `activity_player_activity` FOREIGN KEY (`activity_id`) REFERENCES `activity_info` (`activity_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
     CONSTRAINT `activity_player_player` FOREIGN KEY (`player_id`) REFERENCES `player_info` (`player_id`) ON DELETE CASCADE ON UPDATE NO ACTION
 );
+
+CREATE TABLE IF NOT EXISTS `broadcast`
+(
+    `bc_id`     int          NOT NULL AUTO_INCREMENT,
+    `player_id` int          NOT NULL,
+    `title`     varchar(255) NOT NULL,
+    `content`   text         NOT NULL,
+    `send_time` datetime     NOT NULL,
+    PRIMARY KEY (`bc_id`)
+);
+
+INSERT IGNORE INTO `player_info`(`usr_name`, `usr_pwd`, `role`)
+values ('player', '$2a$10$qh7OQ8eAtaSZGWZW.oExcOPlRPba/DorBF7gtOIiCeDspAFCYkrfi', 'PLAYER');
+INSERT IGNORE INTO `player_info`(`usr_name`, `usr_pwd`, `role`)
+values ('admin', '$2a$10$owUIS9Zv.R33iw.IiDyjDOrJ.1no8yoJlEwPmGq1hYn78pJftljJW', 'ADMIN');

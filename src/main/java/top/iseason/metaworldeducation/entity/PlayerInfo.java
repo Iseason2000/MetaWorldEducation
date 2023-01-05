@@ -21,7 +21,6 @@ import java.util.Objects;
 @TableName("player_info")
 public class PlayerInfo implements Serializable {
 
-
     @ApiModelProperty("用户id")
     @TableId(type = IdType.AUTO)
     private Integer playerId;
@@ -115,8 +114,11 @@ public class PlayerInfo implements Serializable {
     @ApiModelProperty("鞋子选择哪一件")
     private Integer shoeIndex;
 
+    @ApiModelProperty("权限")
+    private String role = "PLAYER";
+
     public User toUser() {
-        return new User(getUsrName(), getUsrPwd(), Collections.singletonList(new SimpleGrantedAuthority("ROLE_PLAYER")));
+        return new User(getUsrName(), getUsrPwd(), Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())));
     }
 
     @Override

@@ -35,6 +35,12 @@ public class PublicController {
         return Result.failure();
     }
 
+    @ApiOperation("注销接口.")
+    @PostMapping("/logout")
+    public Result logout() {
+        return Result.failure();
+    }
+
     @ApiOperation("注册接口.")
     @PostMapping("/register")
     public Result register(

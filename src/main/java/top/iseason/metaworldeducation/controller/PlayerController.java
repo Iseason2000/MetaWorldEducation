@@ -36,7 +36,7 @@ public class PlayerController {
     UserFriendInfoMapper userFriendInfoMapper;
 
     @ApiOperation("更新玩家外观信息接口.")
-    @PostMapping("/UpdateUserInfo")
+    @PostMapping("/updateUserInfo")
     public Result updateInfo(@ApiIgnore Authentication authentication,
                              @ApiParam("0、1、2、3、4分别代表女学生、男学生、职业女性、职业男性") @RequestParam(required = false) Integer identityName,
                              @ApiParam("发型") @RequestParam(required = false) Integer hairType,
@@ -75,7 +75,7 @@ public class PlayerController {
     }
 
     @ApiOperation("更新玩家位置信息接口.")
-    @PostMapping("/UpdatePosition")
+    @PostMapping("/updatePosition")
     public Result updatePosition(@ApiIgnore Authentication authentication,
                                  @ApiParam("X坐标") @RequestParam(required = false) Float posX,
                                  @ApiParam("Y坐标") @RequestParam(required = false) Float posY,
@@ -120,7 +120,7 @@ public class PlayerController {
     }
 
     @ApiOperation("由id获取玩家信息")
-    @GetMapping("/GetPlayerInfoByPlayerID")
+    @GetMapping("/getPlayerInfoByPlayerID")
     public Result getPlayerInfo(@ApiParam("玩家id") @RequestParam Integer id) {
         PlayerInfo byId = playerMapper.selectById(id);
         if (byId == null) return Result.of(ResultCode.USER_NOT_EXIST);
@@ -130,7 +130,7 @@ public class PlayerController {
 
 
     @ApiOperation("向某个玩家发起好友请求")
-    @PostMapping("/AddApplyRecord")
+    @PostMapping("/addApplyRecord")
     public Result AddApplyRecord(@ApiIgnore Authentication authentication, @ApiParam("目标玩家id") @RequestParam Integer receiver) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
@@ -147,7 +147,7 @@ public class PlayerController {
     }
 
     @ApiOperation("获取所有好友请求")
-    @GetMapping("/GetApplyRecords")
+    @GetMapping("/getApplyRecords")
     public Result getApplyRecords(@ApiIgnore Authentication authentication,
                                   @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
                                   @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
@@ -162,7 +162,7 @@ public class PlayerController {
 
     @Transactional
     @ApiOperation("处理某个好友请求")
-    @PostMapping("/SetApplyRecord")
+    @PostMapping("/setApplyRecord")
     public Result setApplyRecord(@ApiIgnore Authentication authentication,
                                  @ApiParam("请求id") @RequestParam Integer requestId,
                                  @ApiParam("状态,0未处理,1接受,-1拒绝") @RequestParam Integer state
@@ -197,7 +197,7 @@ public class PlayerController {
     }
 
     @ApiOperation("获取好友列表")
-    @GetMapping("/GetFriends")
+    @GetMapping("/getFriends")
     public Result getFriends(@ApiIgnore Authentication authentication,
                              @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
                              @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
@@ -218,7 +218,7 @@ public class PlayerController {
     }
 
     @ApiOperation("删除好友")
-    @DeleteMapping("/RemoveFriend")
+    @DeleteMapping("/removeFriend")
     public Result removeFriends(@ApiIgnore Authentication authentication,
                                 @ApiParam("朋友id") @RequestParam Integer friendId
     ) {
