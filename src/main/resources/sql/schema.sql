@@ -111,6 +111,40 @@ CREATE TABLE IF NOT EXISTS `broadcast`
     PRIMARY KEY (`bc_id`)
 );
 
+CREATE TABLE IF NOT EXISTS `goods_types`
+(
+    `type_id` int          NOT NULL AUTO_INCREMENT,
+    `name`    varchar(255) NOT NULL,
+    PRIMARY KEY (`type_id`),
+    UNIQUE INDEX `goods_types_index_all` (`type_id`, `name`)
+);
+
+CREATE TABLE IF NOT EXISTS `goods`
+(
+    `goods_id` int          NOT NULL AUTO_INCREMENT,
+    `type_id`  int          NOT NULL,
+    `name`     varchar(255) NOT NULL,
+    `price`    double       NOT NULL,
+    `amount`   int          NOT NULL,
+    `stock`    int          NOT NULL,
+    `time`     datetime     NOT NULL,
+    PRIMARY KEY (`goods_id`),
+    CONSTRAINT `items_type_id` FOREIGN KEY (`type_id`) REFERENCES `goods_types` (`type_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+    INDEX `items_index_all` (`type_id`, `name`)
+);
+
+CREATE TABLE IF NOT EXISTS `goods_record`
+(
+    `record_id` int      NOT NULL AUTO_INCREMENT,
+    `player_id` int      NOT NULL,
+    `goods_id`  int      NOT NULL,
+    `amount`    int      NOT NULL,
+    `time`      datetime NOT NULL,
+    PRIMARY KEY (`record_id`),
+    CONSTRAINT `items_player_id` FOREIGN KEY (`player_id`) REFERENCES `player_info` (`player_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+    CONSTRAINT `items_goods_id` FOREIGN KEY (`goods_id`) REFERENCES `goods` (`goods_id`) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
 INSERT IGNORE INTO `player_info`(`usr_name`, `usr_pwd`, `role`)
 values ('player', '$2a$10$qh7OQ8eAtaSZGWZW.oExcOPlRPba/DorBF7gtOIiCeDspAFCYkrfi', 'PLAYER');
 INSERT IGNORE INTO `player_info`(`usr_name`, `usr_pwd`, `role`)
