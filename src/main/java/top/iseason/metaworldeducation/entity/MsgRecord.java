@@ -27,7 +27,7 @@ public class MsgRecord implements Serializable {
     @ApiModelProperty("接收者ID")
     private Integer receiveId;
 
-    @ApiModelProperty("接收者ID")
+    @ApiModelProperty("场景ID")
     private Integer sceneId;
 
     @ApiModelProperty("房间/活动ID")

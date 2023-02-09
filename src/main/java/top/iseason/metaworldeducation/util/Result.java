@@ -11,7 +11,7 @@ import lombok.experimental.Accessors;
 /**
  * API结果集
  */
-@ApiModel(description = "响应封装类")
+@ApiModel(value = "响应结果", description = "响应封装类")
 @Data
 @Accessors(chain = true)
 public class Result<T> {

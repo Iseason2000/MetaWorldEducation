@@ -56,7 +56,7 @@ public class PlayerInfo implements Serializable {
     @ApiModelProperty("玩家移动速度")
     private Float moveSpeed;
 
-    @ApiModelProperty("玩家移动速度")
+    @ApiModelProperty("玩家旋转速度")
     private Float rotateSpeed;
 
     @ApiModelProperty("玩家是否正在走路，0:不是，1：是")
@@ -92,7 +92,7 @@ public class PlayerInfo implements Serializable {
     @ApiModelProperty("头发颜色")
     private Integer hairColor;
 
-    @ApiModelProperty("头发颜色")
+    @ApiModelProperty("脸部颜色")
     private Integer faceColor;
 
     @ApiModelProperty(value = "爱好", example = "篮球")
