@@ -12,7 +12,7 @@ public class ExceptionAdvice {
 
     @ExceptionHandler(Exception.class)
     @ResponseBody
-    Result handleControllerException(Throwable ex) {
+    Result<String> handleControllerException(Throwable ex) {
 //        log.info("异常", ex);
         return Result.failure(ex.getMessage());
     }

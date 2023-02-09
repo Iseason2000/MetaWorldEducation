@@ -43,9 +43,9 @@ public class GoodsController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @ApiOperation(value = "添加商品种类", notes = "需要 ADMIN 权限")
-    @PostMapping("/type")
-    public Result addType(
-            @ApiParam("商品种类名称,限255字符") @RequestParam String name
+    @PostMapping(value = "/type", produces = "application/json")
+    public Result<GoodsType> addType(
+            @ApiParam(value = "商品种类名称,限255字符", required = true) @RequestParam String name
     ) {
         GoodsType goodsType = new GoodsType();
         goodsType.setName(name);
@@ -59,10 +59,10 @@ public class GoodsController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @ApiOperation(value = "修改商品种类", notes = "需要 ADMIN 权限")
-    @PutMapping("/type")
-    public Result modifyType(
-            @ApiParam("待修改的商品种类id") @RequestParam Integer id,
-            @ApiParam("商品种类名称,限255字符") @RequestParam String name
+    @PutMapping(value = "/type/{id}", produces = "application/json")
+    public Result<GoodsType> modifyType(
+            @ApiParam(value = "待修改的商品种类id", required = true) @PathVariable Integer id,
+            @ApiParam(value = "商品种类名称,限255字符", required = true) @RequestParam String name
     ) {
         GoodsType goodsType = goodsTypeMapper.selectById(id);
         if (goodsType == null) return Result.of(999, "商品类型不存在");
@@ -73,9 +73,9 @@ public class GoodsController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @ApiOperation(value = "删除商品种类", notes = "同时会删除所有该类型的商品, 需要 ADMIN 权限")
-    @DeleteMapping("/type")
-    public Result removeType(
-            @ApiParam("商品种类名id") @RequestParam Integer id
+    @DeleteMapping(value = "/type/{id}", produces = "application/json")
+    public Result<Object> removeType(
+            @ApiParam(value = "商品种类名id", required = true) @PathVariable Integer id
     ) {
         try {
             goodsTypeMapper.deleteById(id);
@@ -86,10 +86,10 @@ public class GoodsController {
     }
 
     @ApiOperation(value = "获取所有商品种类", notes = "需要 ADMIN 权限")
-    @GetMapping("/type")
-    public Result getTypes() {
+    @GetMapping(value = "/type", produces = "application/json")
+    public Result<List<GoodsType>> getTypes() {
         try {
-            return Result.success(goodsTypeMapper.selectList(new LambdaQueryWrapper<>()));
+            return Result.success(goodsTypeMapper.selectList(null));
         } catch (Exception e) {
             return Result.of(999, "删除失败");
         }
@@ -98,13 +98,13 @@ public class GoodsController {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @ApiOperation(value = "添加商品", notes = "需要 ADMIN 权限")
-    @PostMapping("")
-    public Result addGoods(
-            @ApiParam("商品种类id") @RequestParam Integer goodsTypeId,
-            @ApiParam("商品名称, 限255字符") @RequestParam String name,
-            @ApiParam("商品价格") @RequestParam Double price,
-            @ApiParam("商品投放数量") @RequestParam Integer amount,
-            @ApiParam("商品库存数量") @RequestParam Integer stock
+    @PostMapping(value = "", produces = "application/json")
+    public Result<Goods> addGoods(
+            @ApiParam(value = "商品种类id", required = true) @RequestParam Integer goodsTypeId,
+            @ApiParam(value = "商品名称, 限255字符", required = true) @RequestParam String name,
+            @ApiParam(value = "商品价格", required = true) @RequestParam Double price,
+            @ApiParam(value = "商品投放数量", required = true) @RequestParam Integer amount,
+            @ApiParam(value = "商品库存数量", required = true) @RequestParam Integer stock
     ) {
         GoodsType goodsType = goodsTypeMapper.selectById(goodsTypeId);
         if (goodsType == null) return Result.of(999, "商品种类不存在");
@@ -120,9 +120,9 @@ public class GoodsController {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @ApiOperation(value = "修改商品", notes = "需要 ADMIN 权限")
-    @PutMapping("")
-    public Result modifyGoods(
-            @ApiParam("待修改的商品id") @RequestParam Integer id,
+    @PutMapping(value = "/{id}", produces = "application/json")
+    public Result<Goods> modifyGoods(
+            @ApiParam(value = "待修改的商品id", required = true) @PathVariable Integer id,
             @ApiParam("商品种类id") @RequestParam(required = false) Integer goodsTypeId,
             @ApiParam("商品名称, 限255字符") @RequestParam(required = false) String name,
             @ApiParam("商品价格") @RequestParam(required = false) Double price,
@@ -144,9 +144,9 @@ public class GoodsController {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     @ApiOperation(value = "删除商品", notes = "需要 ADMIN 权限")
-    @DeleteMapping("")
-    public Result removeGoods(
-            @ApiParam("待删除的商品id") @RequestParam Integer id
+    @DeleteMapping(value = "/{id}", produces = "application/json")
+    public Result<Object> removeGoods(
+            @ApiParam(value = "待删除的商品id", required = true) @PathVariable Integer id
     ) {
         int i = goodsMapper.deleteById(id);
         if (i == 1) Result.success();
@@ -154,9 +154,9 @@ public class GoodsController {
     }
 
     @ApiOperation(value = "获取某个商品的信息")
-    @GetMapping("/")
-    public Result getGoods(
-            @ApiParam("商品id") @RequestParam(required = false) Integer id
+    @GetMapping(value = "/{id}", produces = "application/json")
+    public Result<Goods> getGoods(
+            @ApiParam(value = "商品id", required = true) @PathVariable(required = false) Integer id
     ) {
         Goods goods = goodsMapper.selectById(id);
         if (goods == null) Result.of(999, "商品不存在");
@@ -164,8 +164,8 @@ public class GoodsController {
     }
 
     @ApiOperation(value = "获取商品列表")
-    @GetMapping("/list")
-    public Result getGoodsList(
+    @GetMapping(value = "/list", produces = "application/json")
+    public Result<List<Goods>> getGoodsList(
             @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
             @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
     ) {
@@ -179,11 +179,11 @@ public class GoodsController {
 
     @Transactional
     @ApiOperation(value = "购买商品")
-    @PostMapping("/buy")
-    public Result removeGoods(
+    @PostMapping(value = "/buy/{id}", produces = "application/json")
+    public Result<GoodsRecord> removeGoods(
             @ApiIgnore Authentication authentication,
-            @ApiParam("商品id") @RequestParam Integer id,
-            @ApiParam("商品数量") @RequestParam Integer amount
+            @ApiParam(value = "商品id", required = true) @PathVariable Integer id,
+            @ApiParam(value = "商品数量", required = true) @RequestParam Integer amount
     ) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
@@ -199,7 +199,7 @@ public class GoodsController {
         goodsRecord.setAmount(amount);
         goodsRecord.setTime(new Date());
         goodsRecordMapper.insert(goodsRecord);
-        return Result.of(999, "商品不存在");
+        return Result.success(goodsRecord);
     }
 
 }

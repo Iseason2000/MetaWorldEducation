@@ -1,8 +1,6 @@
 package top.iseason.metaworldeducation.controller;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,33 +18,37 @@ import java.util.Date;
 @RestController
 @RequestMapping("/public")
 public class PublicController {
+
     @Resource
     PlayerMapper playerMapper;
     @Resource
     PasswordEncoder passwordEncoder;
 
-    @ApiOperation("登录接口.")
-    @PostMapping("/login")
-    public Result login(
-            @ApiParam("用户名") @RequestParam("usrName") String username,
-            @ApiParam("密码") @RequestParam("usrPwd") String password,
+
+    @ApiOperation(value = "登录接口",
+            extensions = @Extension(properties = @ExtensionProperty(name = "data", value = "[{\"playerId\":2,\"updateTime\":\"2023-02-09 14:22:10\",\"usrName\":\"admin\",\"role\":\"ADMIN\"}]"))
+    )
+    @PostMapping(value = "/login", produces = "application/json")
+    public Result<PlayerInfo> login(
+            @ApiParam(value = "用户名", required = true) @RequestParam("usrName") String username,
+            @ApiParam(value = "密码", required = true) @RequestParam("usrPwd") String password,
             @ApiParam("是否记住用户") @RequestParam(value = "remember", required = false) String remember
     ) {
         return Result.failure();
     }
 
-    @ApiOperation("注销接口.")
-    @PostMapping("/logout")
-    public Result logout() {
+    @ApiOperation(value = "注销接口.")
+    @PostMapping(value = "/logout", produces = "application/json")
+    public Result<Object> logout() {
         return Result.failure();
     }
 
     @ApiOperation("注册接口.")
-    @PostMapping("/register")
-    public Result register(
-            @ApiParam("用户名") @RequestParam("usrName") String username,
-            @ApiParam("密码") @RequestParam("usrPwd") String password,
-            @ApiParam("昵称") @RequestParam("playerName") String playerName
+    @PostMapping(value = "/register", produces = "application/json")
+    public Result<PlayerInfo> register(
+            @ApiParam(value = "用户名", required = true) @RequestParam("usrName") String username,
+            @ApiParam(value = "密码", required = true) @RequestParam("usrPwd") String password,
+            @ApiParam(value = "昵称", required = true) @RequestParam("playerName") String playerName
     ) {
         PlayerInfo playerInfo = new PlayerInfo()
                 .setUsrName(username)

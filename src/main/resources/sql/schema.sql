@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS `activity_player`
     `activity_id` int NOT NULL,
     `player_id`   int NOT NULL,
     PRIMARY KEY (`ap_id`),
-    UNIQUE INDEX `all` (`ap_id`, `activity_id`, `player_id`),
+    UNIQUE INDEX `activity_player_all` (`ap_id`, `activity_id`, `player_id`),
     CONSTRAINT `activity_player_activity` FOREIGN KEY (`activity_id`) REFERENCES `activity_info` (`activity_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
     CONSTRAINT `activity_player_player` FOREIGN KEY (`player_id`) REFERENCES `player_info` (`player_id`) ON DELETE CASCADE ON UPDATE NO ACTION
 );
@@ -143,6 +143,51 @@ CREATE TABLE IF NOT EXISTS `goods_record`
     PRIMARY KEY (`record_id`),
     CONSTRAINT `items_player_id` FOREIGN KEY (`player_id`) REFERENCES `player_info` (`player_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
     CONSTRAINT `items_goods_id` FOREIGN KEY (`goods_id`) REFERENCES `goods` (`goods_id`) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS `lab_subject`
+(
+    `subject_id` int          NOT NULL AUTO_INCREMENT,
+    `name`       varchar(255) NOT NULL,
+    PRIMARY KEY (`subject_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `lab`
+(
+    `lab_id`        int          NOT NULL AUTO_INCREMENT,
+    `subject_id`    int          NOT NULL,
+    `owner`         int          NOT NULL,
+    `name`          varchar(255) NOT NULL,
+    `player_count`  int          NOT NULL,
+    `player_limit`  int          NOT NULL,
+    `create_time`   datetime     NOT NULL,
+    `enable_voice`  int          NOT NULL,
+    `enable_action` int          NOT NULL,
+    `equipments`    text,
+    PRIMARY KEY (`lab_id`),
+    UNIQUE INDEX `lab_index_id_subject_player` (`lab_id`, `subject_id`, `owner`),
+    CONSTRAINT `lab_subject` FOREIGN KEY (`subject_id`) REFERENCES `lab_subject` (`subject_id`) ON DELETE CASCADE,
+    FOREIGN KEY (`owner`) REFERENCES `player_info` (`player_id`) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS `lab_equipment`
+(
+    `eq_id` int          NOT NULL AUTO_INCREMENT,
+    `name`  varchar(255) NOT NULL,
+    `type`  varchar(255) NOT NULL,
+    `md5`   varchar(32)  NOT NULL,
+    PRIMARY KEY (`eq_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `lab_player`
+(
+    `lp_id`     int NOT NULL AUTO_INCREMENT,
+    `lab_id`    int NOT NULL,
+    `player_id` int NOT NULL,
+    PRIMARY KEY (`lp_id`),
+    UNIQUE INDEX `lab_player_all` (`lp_id`, `lab_id`, `player_id`),
+    CONSTRAINT `lab_player_activity` FOREIGN KEY (`lab_id`) REFERENCES `lab` (`lab_id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+    CONSTRAINT `lab_player_player` FOREIGN KEY (`player_id`) REFERENCES `player_info` (`player_id`) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
 INSERT IGNORE INTO `player_info`(`usr_name`, `usr_pwd`, `role`)

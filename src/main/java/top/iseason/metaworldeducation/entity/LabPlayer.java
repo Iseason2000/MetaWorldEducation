@@ -6,24 +6,22 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
 @Data
-@Accessors(chain = true)
-@TableName("user_friend_info")
-@ApiModel("好友记录")
-public class UserFriendInfo implements Serializable {
+@TableName("lab_player")
+@ApiModel("参与实验室里的玩家")
+public class LabPlayer implements Serializable {
 
-    @ApiModelProperty("记录ID")
+    @ApiModelProperty("ID")
     @TableId(type = IdType.AUTO)
-    private Integer ufId;
+    private Integer lpId;
+
+    @ApiModelProperty("实验室ID")
+    private Integer labId;
 
     @ApiModelProperty("玩家ID")
-    private Integer userId;
-
-    @ApiModelProperty("朋友ID")
-    private Integer friendId;
+    private Integer playerId;
 
 }

@@ -1,7 +1,6 @@
 package top.iseason.metaworldeducation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -41,12 +40,12 @@ public class MessageController {
 
     @Transactional
     @ApiOperation("发送消息给玩家")
-    @PostMapping("/send")
-    public Result send(@ApiIgnore Authentication authentication,
-                       @ApiParam("接受者ID") @RequestParam Integer receiveId,
-                       @ApiParam("消息内容") @RequestParam String msg,
-                       @ApiParam("房间ID,不传入则表示不在房间中") @RequestParam(required = false) Integer activityId,
-                       @ApiParam("场景ID,不传入则表示不在房间中") @RequestParam(required = false) Integer sceneId
+    @PostMapping(value = "/send", produces = "application/json")
+    public Result<MsgRecord> send(@ApiIgnore Authentication authentication,
+                                  @ApiParam(value = "接受者ID", required = true) @RequestParam Integer receiveId,
+                                  @ApiParam(value = "消息内容", required = true) @RequestParam String msg,
+                                  @ApiParam("房间ID,不传入则表示不在房间中") @RequestParam(required = false) Integer activityId,
+                                  @ApiParam("场景ID,不传入则表示不在房间中") @RequestParam(required = false) Integer sceneId
     ) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
@@ -63,43 +62,65 @@ public class MessageController {
 
     @Transactional
     @ApiOperation("获取某玩家发给自己的消息")
-    @GetMapping("/receive")
-    public Result getReceiveMessage(
+    @GetMapping(value = "/receiver/{playerId}", produces = "application/json")
+    public Result<List<MsgRecord>> getReceiveMessage(
             @ApiIgnore Authentication authentication,
-            @ApiParam("玩家ID") @RequestParam Integer playerId,
+            @ApiParam(value = "玩家ID", required = true) @PathVariable Integer playerId,
+            @ApiParam("房间ID,不传入则表示不在房间中") @RequestParam(required = false) Integer activityId,
             @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
-            @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count,
-            @ApiParam("房间ID,不传入则表示不在房间中") @RequestParam(required = false) Integer activityId
-
+            @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
     ) {
         if (page == null) page = 0;
         if (count == null) count = 10;
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
+        LambdaQueryWrapper<MsgRecord> wrapper = new LambdaQueryWrapper<MsgRecord>()
+                .eq(MsgRecord::getReceiveId, playerInfo.getPlayerId())
+                .eq(MsgRecord::getSenderId, playerId);
+        if (activityId == null)
+            wrapper = wrapper.isNull(MsgRecord::getActivityId);
+        else wrapper = wrapper.eq(MsgRecord::getActivityId, activityId);
         List<MsgRecord> msgRecords = msgRecordMapper.selectList(
-                new LambdaQueryWrapper<MsgRecord>()
-                        .eq(MsgRecord::getReceiveId, playerInfo.getPlayerId())
-                        .eq(MsgRecord::getSenderId, playerId)
-                        .eq(MsgRecord::getActivityId, activityId)
+                wrapper
                         .last("limit " + page * count + "," + count));
         for (MsgRecord msgRecord : msgRecords) {
             msgRecord.setIsRead(1);
+            msgRecordMapper.updateById(msgRecord);
         }
-        msgRecordMapper.update(null, new LambdaUpdateWrapper<MsgRecord>()
-                .eq(MsgRecord::getReceiveId, playerInfo.getPlayerId())
-                .eq(MsgRecord::getSenderId, playerId)
-                .eq(MsgRecord::getActivityId, activityId)
-                .set(MsgRecord::getIsRead, 1)
-                .last("limit " + page * count + "," + count));
         return Result.success(msgRecords);
     }
 
-
-    @ApiOperation("获取某自己发给某玩家的消息")
-    @GetMapping("/send")
-    public Result getSendMessage(
+    @Transactional
+    @ApiOperation("获取自己最近的消息")
+    @GetMapping(value = "/receiver", produces = "application/json")
+    public Result<List<MsgRecord>> getReceiveMessage(
             @ApiIgnore Authentication authentication,
-            @ApiParam("玩家ID") @RequestParam Integer playerId,
+            @ApiParam("是否仅显示未读") @RequestParam(required = false, defaultValue = "false") Boolean isRead,
+            @ApiParam("房间ID,不传入则表示不在房间中") @RequestParam(required = false) Integer activityId,
+            @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
+            @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
+    ) {
+        if (page == null) page = 0;
+        if (count == null) count = 10;
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
+        LambdaQueryWrapper<MsgRecord> wrapper = new LambdaQueryWrapper<MsgRecord>()
+                .eq(MsgRecord::getReceiveId, playerInfo.getPlayerId());
+        if (isRead) wrapper = wrapper.eq(MsgRecord::getIsRead, 0);
+        if (activityId == null)
+            wrapper = wrapper.isNull(MsgRecord::getActivityId);
+        else wrapper = wrapper.eq(MsgRecord::getActivityId, activityId);
+        List<MsgRecord> msgRecords = msgRecordMapper.selectList(
+                wrapper.orderByDesc(MsgRecord::getMsgId)
+                        .last("limit " + page * count + "," + count));
+        return Result.success(msgRecords);
+    }
+
+    @ApiOperation("获取自己发给某玩家的消息")
+    @GetMapping(value = "/send", produces = "application/json")
+    public Result<List<MsgRecord>> getSendMessage(
+            @ApiIgnore Authentication authentication,
+            @ApiParam(value = "玩家ID", required = true) @RequestParam Integer playerId,
             @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
             @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count,
             @ApiParam("房间ID,不传入则表示不在房间中") @RequestParam(required = false) Integer activityId
@@ -108,25 +129,27 @@ public class MessageController {
         if (count == null) count = 10;
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
+        LambdaQueryWrapper<MsgRecord> wrapper = new LambdaQueryWrapper<MsgRecord>()
+                .eq(MsgRecord::getSenderId, playerInfo.getPlayerId())
+                .eq(MsgRecord::getReceiveId, playerId);
+        if (activityId == null)
+            wrapper = wrapper.isNull(MsgRecord::getActivityId);
+        else wrapper = wrapper.eq(MsgRecord::getActivityId, activityId);
         List<MsgRecord> msgRecords = msgRecordMapper.selectList(
-                new LambdaQueryWrapper<MsgRecord>()
-                        .eq(MsgRecord::getReceiveId, playerId)
-                        .eq(MsgRecord::getSenderId, playerInfo.getPlayerId())
-                        .eq(MsgRecord::getActivityId, activityId)
-                        .last("limit " + page * count + "," + count));
+                wrapper.last("limit " + page * count + "," + count));
 
         return Result.success(msgRecords);
     }
 
     @Transactional
     @ApiOperation(value = "发布公告", notes = "需要ADMIN权限")
-    @PostMapping("/broadcast")
+    @PostMapping(value = "/broadcast", produces = "application/json")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result broadcast(
+    public Result<BroadCast> broadcast(
             @ApiIgnore Authentication authentication,
-            @ApiParam("公告标题") @RequestParam String title,
-            @ApiParam("公告内容") @RequestParam String content,
-            @ApiParam("发布时间") @RequestParam String sendTime
+            @ApiParam(value = "公告标题", required = true) @RequestParam String title,
+            @ApiParam(value = "公告内容", required = true) @RequestParam String content,
+            @ApiParam(value = "发布时间", required = true) @RequestParam String sendTime
     ) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
@@ -146,8 +169,8 @@ public class MessageController {
     }
 
     @ApiOperation("获取已发布的公告")
-    @GetMapping("/broadcast")
-    public Result getBroadcast(
+    @GetMapping(value = "/broadcast", produces = "application/json")
+    public Result<List<BroadCast>> getBroadcast(
             @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
             @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count) {
         if (page == null) page = 0;
@@ -160,9 +183,9 @@ public class MessageController {
     }
 
     @ApiOperation(value = "获取所有公告(包括未发布的)", notes = "需要ADMIN权限")
-    @GetMapping("/allBroadcast")
+    @GetMapping(value = "/allBroadcast", produces = "application/json")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result getAllBroadcast(
+    public Result<List<BroadCast>> getAllBroadcast(
             @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
             @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count) {
         if (page == null) page = 0;
@@ -173,9 +196,9 @@ public class MessageController {
 
     @Transactional
     @ApiOperation(value = "删除公告", notes = "需要ADMIN权限")
-    @DeleteMapping("/broadcast")
+    @DeleteMapping(value = "/broadcast", produces = "application/json")
     @PreAuthorize("hasRole('ADMIN')")
-    public Result delBroadcast(@ApiParam("公告ID") @RequestParam String bcId) {
+    public Result<Object> delBroadcast(@ApiParam(value = "公告ID", required = true) @RequestParam String bcId) {
         broadCastMapper.deleteById(bcId);
         return Result.success();
     }

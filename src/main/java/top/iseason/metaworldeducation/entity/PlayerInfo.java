@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -19,13 +20,14 @@ import java.util.Objects;
 @Data
 @Accessors(chain = true)
 @TableName("player_info")
+@ApiModel("玩家信息")
 public class PlayerInfo implements Serializable {
 
     @ApiModelProperty("用户id")
     @TableId(type = IdType.AUTO)
     private Integer playerId;
 
-    @ApiModelProperty("用户名称")
+    @ApiModelProperty(value = "用户名称", example = "张三")
     private String playerName;
 
     @ApiModelProperty("玩家最近一次发送心跳包的时间")
@@ -63,13 +65,13 @@ public class PlayerInfo implements Serializable {
     @ApiModelProperty("玩家是否正在讲话，0:不是，1：是")
     private Integer isTalking;
 
-    @ApiModelProperty("玩家讲话内容")
+    @ApiModelProperty(value = "玩家讲话内容", example = "你好")
     private String talkMsg;
 
-    @ApiModelProperty("登录账户")
+    @ApiModelProperty(value = "登录账户", example = "iseason")
     private String usrName;
 
-    @ApiModelProperty("登录密码")
+    @ApiModelProperty(value = "登录密码", example = "password")
     private String usrPwd;
 
     @ApiModelProperty("用户当前在哪个场景，广工沙河校区、广工东风路校区、广工大学城校区等等")
@@ -93,16 +95,16 @@ public class PlayerInfo implements Serializable {
     @ApiModelProperty("头发颜色")
     private Integer faceColor;
 
-    @ApiModelProperty("爱好")
+    @ApiModelProperty(value = "爱好", example = "篮球")
     private String hobby;
 
-    @ApiModelProperty("性格")
+    @ApiModelProperty(value = "性格", example = "开朗")
     private String disposition;
 
-    @ApiModelProperty("爱好")
+    @ApiModelProperty(value = "职业", example = "学生")
     private String occupation;
 
-    @ApiModelProperty("故事")
+    @ApiModelProperty(value = "故事", example = "从前有座山...")
     private String story;
 
     @ApiModelProperty("上衣选择哪一件")
@@ -114,7 +116,7 @@ public class PlayerInfo implements Serializable {
     @ApiModelProperty("鞋子选择哪一件")
     private Integer shoeIndex;
 
-    @ApiModelProperty("权限")
+    @ApiModelProperty(value = "权限", example = "PLAYER")
     private String role = "PLAYER";
 
     public User toUser() {

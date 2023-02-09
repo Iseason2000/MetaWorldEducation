@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Api(tags = "玩家API，需登录")
+@Api(tags = "玩家API")
 @RestController
 @RequestMapping("/player")
 public class PlayerController {
@@ -36,20 +36,21 @@ public class PlayerController {
     UserFriendInfoMapper userFriendInfoMapper;
 
     @ApiOperation("更新玩家外观信息接口.")
-    @PostMapping("/updateUserInfo")
-    public Result updateInfo(@ApiIgnore Authentication authentication,
-                             @ApiParam("0、1、2、3、4分别代表女学生、男学生、职业女性、职业男性") @RequestParam(required = false) Integer identityName,
-                             @ApiParam("发型") @RequestParam(required = false) Integer hairType,
-                             @ApiParam("脸型") @RequestParam(required = false) Integer faceType,
-                             @ApiParam("头发颜色") @RequestParam(required = false) Integer hairColor,
-                             @ApiParam("肤色") @RequestParam(required = false) Integer faceColor,
-                             @ApiParam("爱好") @RequestParam(required = false) String hobby,
-                             @ApiParam("性格") @RequestParam(required = false) String disposition,
-                             @ApiParam("职业") @RequestParam(required = false) String occupation,
-                             @ApiParam("故事") @RequestParam(required = false) String story,
-                             @ApiParam("上衣") @RequestParam(required = false) Integer blouseIndex,
-                             @ApiParam("裤子") @RequestParam(required = false) Integer trousersIndex,
-                             @ApiParam("鞋子") @RequestParam(required = false) Integer shoeIndex
+    @PostMapping(value = "/updateUserInfo", produces = "application/json")
+    public Result<PlayerInfo> updateInfo(@ApiIgnore Authentication authentication,
+                                         @ApiParam("0、1、2、3、4分别代表女学生、男学生、职业女性、职业男性")
+                                         @RequestParam(required = false) Integer identityName,
+                                         @ApiParam("发型") @RequestParam(required = false) Integer hairType,
+                                         @ApiParam("脸型") @RequestParam(required = false) Integer faceType,
+                                         @ApiParam("头发颜色") @RequestParam(required = false) Integer hairColor,
+                                         @ApiParam("肤色") @RequestParam(required = false) Integer faceColor,
+                                         @ApiParam("爱好") @RequestParam(required = false) String hobby,
+                                         @ApiParam("性格") @RequestParam(required = false) String disposition,
+                                         @ApiParam("职业") @RequestParam(required = false) String occupation,
+                                         @ApiParam("故事") @RequestParam(required = false) String story,
+                                         @ApiParam("上衣") @RequestParam(required = false) Integer blouseIndex,
+                                         @ApiParam("裤子") @RequestParam(required = false) Integer trousersIndex,
+                                         @ApiParam("鞋子") @RequestParam(required = false) Integer shoeIndex
     ) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
@@ -71,27 +72,27 @@ public class PlayerController {
         } catch (Exception e) {
             return Result.failure();
         }
-        return Result.success();
+        return Result.success(playerInfo);
     }
 
     @ApiOperation("更新玩家位置信息接口.")
-    @PostMapping("/updatePosition")
-    public Result updatePosition(@ApiIgnore Authentication authentication,
-                                 @ApiParam("X坐标") @RequestParam(required = false) Float posX,
-                                 @ApiParam("Y坐标") @RequestParam(required = false) Float posY,
-                                 @ApiParam("Z坐标") @RequestParam(required = false) Float posZ,
-                                 @ApiParam("X角") @RequestParam(required = false) Float roaX,
-                                 @ApiParam("Y角") @RequestParam(required = false) Float roaY,
-                                 @ApiParam("Z角") @RequestParam(required = false) Float roaZ,
-                                 @ApiParam("移动速度") @RequestParam(required = false) Float moveSpeed,
-                                 @ApiParam("旋转速度") @RequestParam(required = false) Float rotateSpeed,
-                                 @ApiParam("玩家是否正在走路，0:不是，1：是") @RequestParam(required = false) Integer isRunning,
-                                 @ApiParam("玩家是否正在讲话，0:不是，1：是") @RequestParam(required = false) Integer isTalking,
-                                 @ApiParam("玩家讲话内容") @RequestParam(required = false) String talkMsg,
+    @PostMapping(value = "/updatePosition", produces = "application/json")
+    public Result<PlayerInfo> updatePosition(@ApiIgnore Authentication authentication,
+                                             @ApiParam("X坐标") @RequestParam(required = false) Float posX,
+                                             @ApiParam("Y坐标") @RequestParam(required = false) Float posY,
+                                             @ApiParam("Z坐标") @RequestParam(required = false) Float posZ,
+                                             @ApiParam("X角") @RequestParam(required = false) Float roaX,
+                                             @ApiParam("Y角") @RequestParam(required = false) Float roaY,
+                                             @ApiParam("Z角") @RequestParam(required = false) Float roaZ,
+                                             @ApiParam("移动速度") @RequestParam(required = false) Float moveSpeed,
+                                             @ApiParam("旋转速度") @RequestParam(required = false) Float rotateSpeed,
+                                             @ApiParam("玩家是否正在走路，0:不是，1：是") @RequestParam(required = false) Integer isRunning,
+                                             @ApiParam("玩家是否正在讲话，0:不是，1：是") @RequestParam(required = false) Integer isTalking,
+                                             @ApiParam("玩家讲话内容") @RequestParam(required = false) String talkMsg,
 //                                 @ApiParam("登录账户") @RequestParam(required = false) String usrName,
 //                                 @ApiParam("登录密码") @RequestParam(required = false) String usrPwd,
-                                 @ApiParam("用户当前的场景") @RequestParam(required = false) Integer sceneID,
-                                 @ApiParam("用户当前参加的活动") @RequestParam(required = false) Integer activityID
+                                             @ApiParam("用户当前的场景") @RequestParam(required = false) Integer sceneID,
+                                             @ApiParam("用户当前参加的活动") @RequestParam(required = false) Integer activityID
     ) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
@@ -116,56 +117,73 @@ public class PlayerController {
         } catch (Exception e) {
             return Result.failure();
         }
-        return Result.success();
+        return Result.success(playerInfo);
     }
 
     @ApiOperation("由id获取玩家信息")
-    @GetMapping("/getPlayerInfoByPlayerID")
-    public Result getPlayerInfo(@ApiParam("玩家id") @RequestParam Integer id) {
+    @GetMapping(value = "/getPlayerInfoByPlayerID", produces = "application/json")
+    public Result<PlayerInfo> getPlayerInfo(@ApiParam(value = "玩家id", required = true) @RequestParam Integer id) {
         PlayerInfo byId = playerMapper.selectById(id);
         if (byId == null) return Result.of(ResultCode.USER_NOT_EXIST);
         byId.setUsrPwd(null);
         return Result.success(byId);
     }
 
-
-    @ApiOperation("向某个玩家发起好友请求")
-    @PostMapping("/addApplyRecord")
-    public Result AddApplyRecord(@ApiIgnore Authentication authentication, @ApiParam("目标玩家id") @RequestParam Integer receiver) {
+    @Transactional
+    @ApiOperation("向某个玩家发起好友请求(5分钟内只能一次)")
+    @PostMapping(value = "/addApplyRecord", produces = "application/json")
+    public Result<ApplyRecord> AddApplyRecord(
+            @ApiIgnore Authentication authentication,
+            @ApiParam(value = "目标玩家id", required = true) @RequestParam Integer receiver) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
+        ApplyRecord lastRecord = applyRecordMapper.selectOne(
+                new LambdaQueryWrapper<ApplyRecord>()
+                        .eq(ApplyRecord::getApplyer, playerInfo.getPlayerId())
+                        .eq(ApplyRecord::getReceiver, receiver)
+                        .orderByDesc(ApplyRecord::getApplyId)
+        );
+        if (lastRecord != null) {
+            long l = System.currentTimeMillis() - lastRecord.getApplyTime().getTime();
+            if (l < 300000)
+                return Result.of(999, "请等待 " + (300 - l / 1000) + " 秒后再次发送请求");
+        }
         ApplyRecord applyRecord = new ApplyRecord();
         applyRecord.setApplyTime(new Date());
-        applyRecord.setApplyId(playerInfo.getPlayerId());
+        applyRecord.setApplyer(playerInfo.getPlayerId());
         applyRecord.setReceiver(receiver);
         try {
             applyRecordMapper.insert(applyRecord);
+            if (lastRecord != null) applyRecordMapper.deleteById(lastRecord);
         } catch (Exception e) {
             return Result.of(3003, "请求已存在!");
         }
-        return Result.success();
+        return Result.success(applyRecord);
     }
 
     @ApiOperation("获取所有好友请求")
-    @GetMapping("/getApplyRecords")
-    public Result getApplyRecords(@ApiIgnore Authentication authentication,
-                                  @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
-                                  @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
+    @GetMapping(value = "/getApplyRecords", produces = "application/json")
+    public Result<List<ApplyRecord>> getApplyRecords(@ApiIgnore Authentication authentication,
+                                                     @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
+                                                     @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
     ) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         if (page == null) page = 0;
         if (count == null) count = 10;
-        List<ApplyRecord> applyRecords = applyRecordMapper.selectList(new LambdaQueryWrapper<ApplyRecord>().eq(ApplyRecord::getApplyId, playerInfo.getPlayerId()).last("limit " + page * count + "," + count));
+        List<ApplyRecord> applyRecords = applyRecordMapper
+                .selectList(new LambdaQueryWrapper<ApplyRecord>()
+                        .eq(ApplyRecord::getReceiver, playerInfo.getPlayerId()).
+                        last("limit " + page * count + "," + count));
         return Result.success(applyRecords);
     }
 
     @Transactional
     @ApiOperation("处理某个好友请求")
-    @PostMapping("/setApplyRecord")
-    public Result setApplyRecord(@ApiIgnore Authentication authentication,
-                                 @ApiParam("请求id") @RequestParam Integer requestId,
-                                 @ApiParam("状态,0未处理,1接受,-1拒绝") @RequestParam Integer state
+    @PostMapping(value = "/setApplyRecord", produces = "application/json")
+    public Result<ApplyRecord> setApplyRecord(@ApiIgnore Authentication authentication,
+                                              @ApiParam(value = "请求id", required = true) @RequestParam Integer requestId,
+                                              @ApiParam(value = "状态,0未处理,1接受,-1拒绝", required = true) @RequestParam Integer state
     ) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
@@ -177,37 +195,37 @@ public class PlayerController {
             try {
                 userFriendInfoMapper.insert(new UserFriendInfo()
                         .setUserId(applyRecord.getReceiver())
-                        .setFriendId(applyRecord.getApplyId()));
+                        .setFriendId(applyRecord.getApplyer()));
             } catch (Exception ignored) {
             }
             try {
                 userFriendInfoMapper.insert(new UserFriendInfo()
-                        .setUserId(applyRecord.getApplyId())
+                        .setUserId(applyRecord.getApplyer())
                         .setFriendId(applyRecord.getReceiver()));
             } catch (Exception ignored) {
             }
-            log.info("玩家 " + applyRecord.getReceiver() + " 与玩家 " + applyRecord.getApplyId() + " 建立了好友关系");
+            log.info("玩家 " + applyRecord.getReceiver() + " 与玩家 " + applyRecord.getApplyer() + " 建立了好友关系");
         }
         try {
             applyRecordMapper.updateById(applyRecord);
         } catch (Exception e) {
             return Result.failure();
         }
-        return Result.success();
+        return Result.success(applyRecord);
     }
 
     @ApiOperation("获取好友列表")
-    @GetMapping("/getFriends")
-    public Result getFriends(@ApiIgnore Authentication authentication,
-                             @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
-                             @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
+    @GetMapping(value = "/getFriends", produces = "application/json")
+    public Result<List<PlayerInfo>> getFriends(@ApiIgnore Authentication authentication,
+                                               @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
+                                               @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count
     ) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
         if (page == null) page = 0;
         if (count == null) count = 10;
         List<UserFriendInfo> userFriendInfos = userFriendInfoMapper.selectList(new LambdaQueryWrapper<UserFriendInfo>().eq(UserFriendInfo::getUserId, playerInfo.getPlayerId()).last("limit " + page * count + "," + count));
-        if (userFriendInfos.isEmpty()) return Result.success(userFriendInfos);
+        if (userFriendInfos.isEmpty()) return Result.success(null);
         List<Integer> collect = userFriendInfos.stream().map(UserFriendInfo::getFriendId).collect(Collectors.toList());
         List<PlayerInfo> playerInfos = playerMapper.selectBatchIds(collect);
         //脱敏
@@ -218,9 +236,9 @@ public class PlayerController {
     }
 
     @ApiOperation("删除好友")
-    @DeleteMapping("/removeFriend")
-    public Result removeFriends(@ApiIgnore Authentication authentication,
-                                @ApiParam("朋友id") @RequestParam Integer friendId
+    @DeleteMapping(value = "/removeFriend", produces = "application/json")
+    public Result<Object> removeFriends(@ApiIgnore Authentication authentication,
+                                        @ApiParam(value = "朋友id", required = true) @RequestParam Integer friendId
     ) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);

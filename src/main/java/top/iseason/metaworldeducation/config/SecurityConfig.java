@@ -44,7 +44,7 @@ public class SecurityConfig {
                 })
                 .failureHandler((request, response, exception) -> {
                     response.setContentType("text/json;charset=utf-8");
-                    Result result;
+                    Result<Object> result;
                     if (exception instanceof AccountExpiredException) {
                         //账号过期
                         result = Result.of(ResultCode.USER_ACCOUNT_EXPIRED);
@@ -87,8 +87,8 @@ public class SecurityConfig {
                 .antMatchers("/player/**").hasAnyRole("PLAYER", "ADMIN")
                 .antMatchers("/room/**").hasAnyRole("PLAYER", "ADMIN")
                 .antMatchers("/message/**").hasAnyRole("PLAYER", "ADMIN")
+                .antMatchers("/lab/**").hasAnyRole("PLAYER", "ADMIN")
                 .antMatchers("/public/**").permitAll()
-
 //                .antMatchers("/doc.html").permitAll()
 //                .antMatchers("/webjars/**").permitAll()
 //                .anyRequest()

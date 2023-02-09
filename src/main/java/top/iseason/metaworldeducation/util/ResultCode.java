@@ -19,7 +19,7 @@ public enum ResultCode {
     PARAM_NOT_COMPLETE(1004, "参数缺失"),
 
     /* 用户错误 */
-    USER_LOGIN_SUCCESS(2100, "登录成功"),
+    USER_LOGIN_SUCCESS(200, "登录成功"),
     USER_LOGOUT_SUCCESS(2101, "退出成功"),
     USER_REGISTER_SUCCESS(2102, "注册成功"),
     USER_NOT_LOGIN(401, "用户未登录"),

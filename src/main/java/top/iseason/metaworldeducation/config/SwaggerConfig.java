@@ -7,13 +7,14 @@ import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import springfox.documentation.swagger2.annotations.EnableSwagger2WebMvc;
 
-@EnableSwagger2
+@EnableSwagger2WebMvc
 @Configuration
 public class SwaggerConfig {
-    @Bean
-    public Docket docket() {
+
+    @Bean(value = "dockerBean")
+    public Docket dockerBean() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(new ApiInfoBuilder()
                         .title("元宇宙教育平台 - 在线API接口文档")
