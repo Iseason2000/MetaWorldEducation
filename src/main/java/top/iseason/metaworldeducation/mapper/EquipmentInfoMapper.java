@@ -3,9 +3,11 @@ package top.iseason.metaworldeducation.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.CacheNamespace;
 import org.apache.ibatis.annotations.Mapper;
-import top.iseason.metaworldeducation.entity.Lab;
+import top.iseason.metaworldeducation.entity.EquipmentInfo;
+
 
 @Mapper
 @CacheNamespace
-public interface LabMapper extends BaseMapper<Lab> {
+public interface EquipmentInfoMapper extends BaseMapper<EquipmentInfo> {
 }
+

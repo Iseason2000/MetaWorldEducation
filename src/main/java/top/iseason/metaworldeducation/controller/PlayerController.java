@@ -77,22 +77,23 @@ public class PlayerController {
 
     @ApiOperation("更新玩家位置信息接口.")
     @PostMapping(value = "/updatePosition", produces = "application/json")
-    public Result<PlayerInfo> updatePosition(@ApiIgnore Authentication authentication,
-                                             @ApiParam("X坐标") @RequestParam(required = false) Float posX,
-                                             @ApiParam("Y坐标") @RequestParam(required = false) Float posY,
-                                             @ApiParam("Z坐标") @RequestParam(required = false) Float posZ,
-                                             @ApiParam("X角") @RequestParam(required = false) Float roaX,
-                                             @ApiParam("Y角") @RequestParam(required = false) Float roaY,
-                                             @ApiParam("Z角") @RequestParam(required = false) Float roaZ,
-                                             @ApiParam("移动速度") @RequestParam(required = false) Float moveSpeed,
-                                             @ApiParam("旋转速度") @RequestParam(required = false) Float rotateSpeed,
-                                             @ApiParam("玩家是否正在走路，0:不是，1：是") @RequestParam(required = false) Integer isRunning,
-                                             @ApiParam("玩家是否正在讲话，0:不是，1：是") @RequestParam(required = false) Integer isTalking,
-                                             @ApiParam("玩家讲话内容") @RequestParam(required = false) String talkMsg,
-//                                 @ApiParam("登录账户") @RequestParam(required = false) String usrName,
-//                                 @ApiParam("登录密码") @RequestParam(required = false) String usrPwd,
-                                             @ApiParam("用户当前的场景") @RequestParam(required = false) Integer sceneID,
-                                             @ApiParam("用户当前参加的活动") @RequestParam(required = false) Integer activityID
+    public Result<PlayerInfo> updatePosition(
+            @ApiIgnore Authentication authentication,
+            @ApiParam("X坐标") @RequestParam(required = false) Float posX,
+            @ApiParam("Y坐标") @RequestParam(required = false) Float posY,
+            @ApiParam("Z坐标") @RequestParam(required = false) Float posZ,
+            @ApiParam("X角") @RequestParam(required = false) Float roaX,
+            @ApiParam("Y角") @RequestParam(required = false) Float roaY,
+            @ApiParam("Z角") @RequestParam(required = false) Float roaZ,
+            @ApiParam("移动速度") @RequestParam(required = false) Float moveSpeed,
+            @ApiParam("旋转速度") @RequestParam(required = false) Float rotateSpeed,
+            @ApiParam("玩家是否正在走路，0:不是，1:是") @RequestParam(required = false) Integer isRunning,
+            @ApiParam("玩家是否正在讲话，0:不是，1:是") @RequestParam(required = false) Integer isTalking,
+            @ApiParam("玩家讲话内容") @RequestParam(required = false) String talkMsg
+//            @ApiParam("登录账户") @RequestParam(required = false) String usrName,
+//            @ApiParam("登录密码") @RequestParam(required = false) String usrPwd,
+//            @ApiParam("用户当前的场景") @RequestParam(required = false) Integer sceneID,
+//            @ApiParam("用户当前参加的活动") @RequestParam(required = false) Integer activityID
     ) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
@@ -109,8 +110,8 @@ public class PlayerController {
         if (talkMsg != null) playerInfo.setTalkMsg(talkMsg);
 //        if (usrName != null) playerInfo.setUsrName(usrName);
 //        if (usrPwd != null) playerInfo.setUsrPwd(usrPwd);
-        if (sceneID != null) playerInfo.setSceneId(sceneID);
-        if (activityID != null) playerInfo.setActivityId(activityID);
+//        if (sceneID != null) playerInfo.setSceneId(sceneID);
+//        if (activityID != null) playerInfo.setActivityId(activityID);
         playerInfo.setUpdateTime(new Date());
         try {
             playerMapper.updateById(playerInfo);
