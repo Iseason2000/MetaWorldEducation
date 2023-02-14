@@ -6,17 +6,19 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
 @Data
 @TableName("activity_equipment")
+@Accessors(chain = true)
 @ApiModel("活动里的器材")
 public class ActivityEquipment implements Serializable {
 
     @ApiModelProperty("活动器材ID")
-    @TableId(type = IdType.AUTO)
-    private Integer reId;
+    @TableId(type = IdType.ASSIGN_ID)
+    private Long reId;
 
     @ApiModelProperty(value = "活动ID", example = "2")
     private Integer activityId;
@@ -26,6 +28,9 @@ public class ActivityEquipment implements Serializable {
 
     @ApiModelProperty(value = "实验器材ID", example = "1")
     private Integer eId;
+
+    @ApiModelProperty(value = "实验器材子ID", example = "0")
+    private Integer subId;
 
     @ApiModelProperty(value = "玩家ID", example = "1")
     private Integer creatorId;

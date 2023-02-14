@@ -145,36 +145,37 @@ CREATE TABLE IF NOT EXISTS `goods_record`
     CONSTRAINT `items_goods_id` FOREIGN KEY (`goods_id`) REFERENCES `goods` (`goods_id`) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
-CREATE TABLE `equipment_info`
+CREATE TABLE IF NOT EXISTS `equipment_info`
 (
-    `e_id`        int          NOT NULL,
+    `e_id`        int          NOT NULL AUTO_INCREMENT,
     `name`        varchar(255) NOT NULL,
     `perfab_name` varchar(255) NOT NULL,
     `create_time` datetime     NOT NULL,
     PRIMARY KEY (`e_id`)
 );
 
-CREATE TABLE `activity_equipment`
+CREATE TABLE IF NOT EXISTS `activity_equipment`
 (
-    `re_id`          int   NOT NULL,
-    `activity_id`    int   NOT NULL,
-    `desk_id`        int   NOT NULL,
-    `e_id`           int   NOT NULL,
-    `creator_id`     int   NOT NULL,
-    `pos_x`          float NOT NULL,
-    `pos_y`          float NOT NULL,
-    `pos_z`          float NOT NULL,
-    `roa_x`          float NOT NULL,
-    `roa_y`          float NOT NULL,
-    `roa_z`          float NOT NULL,
-    `scale_x`        float NOT NULL,
-    `scale_y`        float NOT NULL,
-    `scale_z`        float NOT NULL,
-    `dealing_player` int   NULL,
+    `re_id`          bigint NOT NULL,
+    `activity_id`    int    NOT NULL,
+    `desk_id`        int    NOT NULL,
+    `e_id`           int    NOT NULL,
+    `sub_id`         int    NOT NULL,
+    `creator_id`     int    NOT NULL,
+    `pos_x`          float  NOT NULL,
+    `pos_y`          float  NOT NULL,
+    `pos_z`          float  NOT NULL,
+    `roa_x`          float  NOT NULL,
+    `roa_y`          float  NOT NULL,
+    `roa_z`          float  NOT NULL,
+    `scale_x`        float  NOT NULL,
+    `scale_y`        float  NOT NULL,
+    `scale_z`        float  NOT NULL,
+    `dealing_player` int    NULL,
     PRIMARY KEY (`re_id`),
-    UNIQUE INDEX `room_equipment_all` (`re_id`, `activity_id`, `desk_id`, `e_id`, `creator_id`),
+    UNIQUE INDEX `room_equipment_all` (`re_id`, `activity_id`, `desk_id`, `e_id`, `sub_id`, `creator_id`),
     CONSTRAINT `re_activity_id` FOREIGN KEY (`activity_id`) REFERENCES `activity_info` (`activity_id`) ON DELETE CASCADE,
-    CONSTRAINT `re_e_id` FOREIGN KEY (`re_id`) REFERENCES `equipment_info` (`e_id`) ON DELETE CASCADE,
+    CONSTRAINT `re_e_id` FOREIGN KEY (`e_id`) REFERENCES `equipment_info` (`e_id`) ON DELETE CASCADE,
     CONSTRAINT `re_creator_id` FOREIGN KEY (`creator_id`) REFERENCES `player_info` (`player_id`) ON DELETE CASCADE
 );
 
