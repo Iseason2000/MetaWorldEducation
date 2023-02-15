@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 @Slf4j
-@Api(tags = "消息API，需登录")
+@Api(tags = "消息API")
 @RestController
 @RequestMapping("/message")
 public class MessageController {
@@ -63,7 +63,7 @@ public class MessageController {
     @Transactional
     @ApiOperation("获取某玩家发给自己的消息")
     @GetMapping(value = "/receiver/{playerId}", produces = "application/json")
-    public Result<List<MsgRecord>> getReceiveMessage(
+    public Result<List<MsgRecord>> getMessagesForMe(
             @ApiIgnore Authentication authentication,
             @ApiParam(value = "玩家ID", required = true) @PathVariable Integer playerId,
             @ApiParam("房间ID,不传入则表示不在房间中") @RequestParam(required = false) Integer activityId,

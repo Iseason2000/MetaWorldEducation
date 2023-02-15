@@ -6,7 +6,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +26,7 @@ import java.util.Date;
 import java.util.List;
 
 @Slf4j
-@Api(tags = "商品API，需登录")
+@Api(tags = "商品API")
 @RestController
 @RequestMapping("/goods")
 public class GoodsController {
@@ -41,8 +40,8 @@ public class GoodsController {
     @Resource
     PlayerMapper playerMapper;
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @ApiOperation(value = "添加商品种类", notes = "需要 ADMIN 权限")
+    //    @PreAuthorize("hasRole('ADMIN')")
+    @ApiOperation(value = "添加商品种类"/*, notes = "需要 ADMIN 权限"*/)
     @PostMapping(value = "/type", produces = "application/json")
     public Result<GoodsType> addType(
             @ApiParam(value = "商品种类名称,限255字符", required = true) @RequestParam String name
@@ -57,8 +56,8 @@ public class GoodsController {
         return Result.success(goodsType);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @ApiOperation(value = "修改商品种类", notes = "需要 ADMIN 权限")
+    //    @PreAuthorize("hasRole('ADMIN')")
+    @ApiOperation(value = "修改商品种类"/*, notes = "需要 ADMIN 权限"*/)
     @PutMapping(value = "/type/{id}", produces = "application/json")
     public Result<GoodsType> modifyType(
             @ApiParam(value = "待修改的商品种类id", required = true) @PathVariable Integer id,
@@ -71,8 +70,8 @@ public class GoodsController {
         return Result.success(goodsType);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @ApiOperation(value = "删除商品种类", notes = "同时会删除所有该类型的商品, 需要 ADMIN 权限")
+    //    @PreAuthorize("hasRole('ADMIN')")
+    @ApiOperation(value = "删除商品种类", notes = "同时会删除所有该类型的商品,/* 需要 ADMIN 权限*/")
     @DeleteMapping(value = "/type/{id}", produces = "application/json")
     public Result<Object> removeType(
             @ApiParam(value = "商品种类名id", required = true) @PathVariable Integer id
@@ -85,7 +84,7 @@ public class GoodsController {
         return Result.success();
     }
 
-    @ApiOperation(value = "获取所有商品种类", notes = "需要 ADMIN 权限")
+    @ApiOperation(value = "获取所有商品种类")
     @GetMapping(value = "/type", produces = "application/json")
     public Result<List<GoodsType>> getTypes() {
         try {
@@ -95,9 +94,9 @@ public class GoodsController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    //    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    @ApiOperation(value = "添加商品", notes = "需要 ADMIN 权限")
+    @ApiOperation(value = "添加商品"/*, notes = "需要 ADMIN 权限"*/)
     @PostMapping(value = "", produces = "application/json")
     public Result<Goods> addGoods(
             @ApiParam(value = "商品种类id", required = true) @RequestParam Integer goodsTypeId,
@@ -117,9 +116,9 @@ public class GoodsController {
         return Result.success(goods);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    //    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    @ApiOperation(value = "修改商品", notes = "需要 ADMIN 权限")
+    @ApiOperation(value = "修改商品"/*, notes = "需要 ADMIN 权限"*/)
     @PutMapping(value = "/{id}", produces = "application/json")
     public Result<Goods> modifyGoods(
             @ApiParam(value = "待修改的商品id", required = true) @PathVariable Integer id,
@@ -141,9 +140,9 @@ public class GoodsController {
         return Result.success(goods);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    //    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    @ApiOperation(value = "删除商品", notes = "需要 ADMIN 权限")
+    @ApiOperation(value = "删除商品"/*, notes = "需要 ADMIN 权限"*/)
     @DeleteMapping(value = "/{id}", produces = "application/json")
     public Result<Object> removeGoods(
             @ApiParam(value = "待删除的商品id", required = true) @PathVariable Integer id

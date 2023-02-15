@@ -154,6 +154,26 @@ CREATE TABLE IF NOT EXISTS `equipment_info`
     PRIMARY KEY (`e_id`)
 );
 
+CREATE TABLE IF NOT EXISTS `equipment_info`
+(
+    `e_id`        int          NOT NULL AUTO_INCREMENT,
+    `name`        varchar(255) NOT NULL,
+    `perfab_name` varchar(255) NOT NULL,
+    `create_time` datetime     NOT NULL,
+    PRIMARY KEY (`e_id`)
+);
+
+CREATE TABLE IF NOT EXISTS `equipment_preset`
+(
+    `ep_id`       int          NOT NULL AUTO_INCREMENT,
+    `name`        varchar(255) NOT NULL,
+    `steps`       text         NULL,
+    `theory`      text         NULL,
+    `create_time` datetime     NULL,
+    `equipments`  text         NULL,
+    PRIMARY KEY (`ep_id`)
+);
+
 CREATE TABLE IF NOT EXISTS `activity_equipment`
 (
     `re_id`          bigint NOT NULL,

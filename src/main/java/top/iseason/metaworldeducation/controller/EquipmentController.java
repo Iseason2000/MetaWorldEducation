@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +20,7 @@ import top.iseason.metaworldeducation.entity.PlayerInfo;
 import top.iseason.metaworldeducation.mapper.ActivityEquipmentMapper;
 import top.iseason.metaworldeducation.mapper.EquipmentInfoMapper;
 import top.iseason.metaworldeducation.mapper.PlayerMapper;
+import top.iseason.metaworldeducation.util.FileUtil;
 import top.iseason.metaworldeducation.util.Result;
 import top.iseason.metaworldeducation.util.ResultCode;
 
@@ -29,19 +29,16 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
-@Api(tags = "实验室API，需登录")
+@Api(tags = "实验室API")
 @RestController
 @RequestMapping("/equipment")
 public class EquipmentController {
 
-    private static final String EQUIPMENT_DIR = System.getProperty("user.dir") + File.separatorChar + "equipments";
 
     @Resource
     PlayerMapper playerMapper;
@@ -51,14 +48,13 @@ public class EquipmentController {
     @Resource
     EquipmentInfoMapper labEquipmentMapper;
 
-    @ApiOperation(value = "上传并创建器材", notes = "需要 ADMIN 权限 'multipart/form-data' 协议")
-    @PreAuthorize("hasRole('ADMIN')")
+    @ApiOperation(value = "上传并创建器材", notes = "'multipart/form-data' 协议")
     @Transactional
     @PostMapping(value = "/", produces = "application/json")
     public Result<EquipmentInfo> uploadEquipment(
-            @ApiParam(value = "缩略图", required = true) @RequestPart MultipartFile thumbnailFile,
-            @ApiParam(value = "AssetBundle", required = true) @RequestPart MultipartFile assetFile,
-            @ApiParam(value = "源文件", required = true) @RequestPart MultipartFile sourceFile,
+            @ApiParam(value = "缩略图", required = false) @RequestPart(required = false) MultipartFile thumbnailFile,
+            @ApiParam(value = "AssetBundle", required = false) @RequestPart(required = false) MultipartFile assetFile,
+            @ApiParam(value = "源文件", required = false) @RequestPart(required = false) MultipartFile sourceFile,
             @ApiParam(value = "器材名", required = true) @RequestParam String name,
             @ApiParam(value = "器材预制件名称", required = true) @RequestParam String perfabName
     ) throws IOException {
@@ -68,21 +64,12 @@ public class EquipmentController {
         labEquipment.setCreateTime(new Date());
         labEquipmentMapper.insert(labEquipment);
         Integer eId = labEquipment.getEId();
-        uploadFileTo(thumbnailFile, "thumbnail", eId);
-        uploadFileTo(assetFile, "asset", eId);
-        uploadFileTo(sourceFile, "source", eId);
+        FileUtil.uploadFileTo(thumbnailFile, "thumbnail", eId);
+        FileUtil.uploadFileTo(assetFile, "asset", eId);
+        FileUtil.uploadFileTo(sourceFile, "source", eId);
         return Result.success(labEquipment);
     }
 
-    private void uploadFileTo(MultipartFile sourceFile, String folder, Integer id) throws IOException {
-        String fileName = sourceFile.getOriginalFilename();
-        if (fileName == null) throw new IOException("文件名为空");
-        File storeFile = new File(EQUIPMENT_DIR + File.separatorChar +
-                folder + File.separatorChar +
-                id + fileName.substring(fileName.lastIndexOf(".")));
-        storeFile.getParentFile().mkdirs();
-        sourceFile.transferTo(storeFile);
-    }
 
     @ApiOperation(value = "下载器材缩略图")
     @GetMapping(value = "/download/thumbnail/{id}", produces = "application/octet-stream")
@@ -91,7 +78,7 @@ public class EquipmentController {
     ) throws Exception {
         EquipmentInfo labEquipment = labEquipmentMapper.selectById(id);
         if (labEquipment == null) throw new IllegalArgumentException("器材不存在!");
-        File thumbnail = findFile("thumbnail", id);
+        File thumbnail = FileUtil.findFile("thumbnail", id);
         InputStreamResource isr = new InputStreamResource(Files.newInputStream(thumbnail.toPath()));
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -106,7 +93,7 @@ public class EquipmentController {
     ) throws Exception {
         EquipmentInfo labEquipment = labEquipmentMapper.selectById(id);
         if (labEquipment == null) throw new IllegalArgumentException("器材不存在!");
-        File thumbnail = findFile("asset", id);
+        File thumbnail = FileUtil.findFile("asset", id);
         InputStreamResource isr = new InputStreamResource(Files.newInputStream(thumbnail.toPath()));
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -121,7 +108,7 @@ public class EquipmentController {
     ) throws Exception {
         EquipmentInfo labEquipment = labEquipmentMapper.selectById(id);
         if (labEquipment == null) throw new IllegalArgumentException("器材不存在!");
-        File thumbnail = findFile("source", id);
+        File thumbnail = FileUtil.findFile("source", id);
         InputStreamResource isr = new InputStreamResource(Files.newInputStream(thumbnail.toPath()));
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -137,34 +124,12 @@ public class EquipmentController {
         if (labEquipmentMapper.deleteById(id) == 0) {
             return Result.of(999, "器材不存在");
         }
-        findFile("thumbnail", id).deleteOnExit();
-        findFile("asset", id).deleteOnExit();
-        findFile("source", id).deleteOnExit();
+        FileUtil.findFile("thumbnail", id).deleteOnExit();
+        FileUtil.findFile("asset", id).deleteOnExit();
+        FileUtil.findFile("source", id).deleteOnExit();
         return Result.success();
     }
 
-    private File findFile(String folder, Integer id) throws IOException {
-        String path = EQUIPMENT_DIR + File.separatorChar + folder;
-        AtomicReference<File> file = new AtomicReference<>(null);
-        File[] files = new File(path).listFiles();
-        if (files == null) throw new IOException("文件不存在");
-        //并行查找
-        Arrays.stream(files)
-                .parallel()
-                .forEach(it -> {
-                            if (file.get() != null) return;
-                            String name = it.getName();
-                            int i = name.lastIndexOf('.');
-                            if (i < 1) return;
-                            name = name.substring(0, i);
-                            if (name.equals(String.valueOf(id))) {
-                                file.set(it);
-                            }
-                        }
-                );
-        if (file.get() == null || files.length != 1) throw new IOException("文件不存在!");
-        return file.get();
-    }
 
     @ApiOperation("获取所有器材")
     @GetMapping(value = "/all", produces = "application/json")
@@ -277,7 +242,7 @@ public class EquipmentController {
 
     @ApiOperation("由条件获取活动器材信息,多个条件取交集")
     @GetMapping(value = "", produces = "application/json")
-    public Result<List<ActivityEquipment>> getEquipments(
+    public Result<List<ActivityEquipment>> getActivityEquipments(
             @ApiParam("活动/房间ID") @RequestParam(required = false) Integer activityId,
             @ApiParam("桌子ID") @RequestParam(required = false) Integer deskId,
             @ApiParam("器材ID") @RequestParam(required = false) Integer eId,

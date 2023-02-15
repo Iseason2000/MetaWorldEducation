@@ -27,7 +27,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Api(tags = "房间API，需玩家登录")
+@Api(tags = "房间API")
 @RestController
 @RequestMapping("/room")
 public class RoomController {
