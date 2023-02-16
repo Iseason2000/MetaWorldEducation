@@ -141,6 +141,40 @@ public class MessageController {
         return Result.success(msgRecords);
     }
 
+    @Transactional(readOnly = true)
+    @ApiOperation("获取自己与某玩家的聊天记录")
+    @GetMapping(value = "/between/{playerId}", produces = "application/json")
+    public Result<List<MsgRecord>> getBetweenMessage(
+            @ApiIgnore Authentication authentication,
+            @ApiParam(value = "玩家ID", required = true) @PathVariable Integer playerId,
+            @ApiParam("第几页,0开始") @RequestParam(required = false) Integer page,
+            @ApiParam("每页的数量，默认10") @RequestParam(required = false) Integer count,
+            @ApiParam("房间ID,不传入则表示不在房间中") @RequestParam(required = false) Integer activityId
+    ) {
+        if (page == null) page = 0;
+        if (count == null) count = 10;
+        PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
+        if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
+        Integer pId = playerInfo.getPlayerId();
+        LambdaQueryWrapper<MsgRecord> wrapper = new LambdaQueryWrapper<MsgRecord>()
+                .and(a -> a
+                        .and(b -> b
+                                .eq(MsgRecord::getSenderId, pId)
+                                .eq(MsgRecord::getReceiveId, playerId)
+                        )
+                        .or(c -> c.eq(MsgRecord::getReceiveId, pId)
+                                .eq(MsgRecord::getSenderId, playerId)
+                        )
+                );
+        if (activityId == null)
+            wrapper = wrapper.isNull(MsgRecord::getActivityId);
+        else wrapper = wrapper.eq(MsgRecord::getActivityId, activityId);
+        List<MsgRecord> msgRecords = msgRecordMapper.selectList(
+                wrapper.last("limit " + page * count + "," + count));
+
+        return Result.success(msgRecords);
+    }
+
     @Transactional
     @ApiOperation(value = "发布公告", notes = "需要ADMIN权限")
     @PostMapping(value = "/broadcast", produces = "application/json")

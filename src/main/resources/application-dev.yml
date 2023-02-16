@@ -33,5 +33,8 @@ knife4j:
 mybatis-plus:
   configuration:
     cache-enabled: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+logging:
+
+
