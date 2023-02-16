@@ -1,6 +1,7 @@
 package top.iseason.metaworldeducation.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -23,6 +24,7 @@ import top.iseason.metaworldeducation.util.ResultCode;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Api(tags = "消息API")
@@ -141,7 +143,7 @@ public class MessageController {
         return Result.success(msgRecords);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @ApiOperation("获取自己与某玩家的聊天记录")
     @GetMapping(value = "/between/{playerId}", produces = "application/json")
     public Result<List<MsgRecord>> getBetweenMessage(
@@ -171,7 +173,17 @@ public class MessageController {
         else wrapper = wrapper.eq(MsgRecord::getActivityId, activityId);
         List<MsgRecord> msgRecords = msgRecordMapper.selectList(
                 wrapper.last("limit " + page * count + "," + count));
-
+        msgRecords.parallelStream()
+                .filter(it -> Objects.equals(it.getReceiveId(), pId)
+                        && Objects.equals(it.getIsRead(), 0))
+                .forEach(m -> {
+                    m.setIsRead(1);
+                    msgRecordMapper.update(null,
+                            new LambdaUpdateWrapper<MsgRecord>()
+                                    .eq(MsgRecord::getMsgId, m.getMsgId())
+                                    .set(MsgRecord::getIsRead, 1)
+                    );
+                });
         return Result.success(msgRecords);
     }
 
