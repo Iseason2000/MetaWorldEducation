@@ -12,11 +12,11 @@ public class FileUtil {
     private static final String EQUIPMENT_DIR = System.getProperty("user.dir") + File.separatorChar + "equipments";
 
     public static void uploadFileTo(MultipartFile sourceFile, String folder, Integer id) throws IOException {
+        if (sourceFile == null) return;
         String fileName = sourceFile.getOriginalFilename();
         if (fileName == null) throw new IOException("文件名为空");
         File storeFile = new File(EQUIPMENT_DIR + File.separatorChar +
-                folder + File.separatorChar +
-                id + fileName.substring(fileName.lastIndexOf(".")));
+                folder + File.separatorChar + concatName(id.toString(), sourceFile));
         storeFile.getParentFile().mkdirs();
         sourceFile.transferTo(storeFile);
     }
@@ -42,5 +42,11 @@ public class FileUtil {
                 );
         if (file.get() == null || files.length != 1) throw new IOException("文件不存在!");
         return file.get();
+    }
+
+    public static String concatName(String id, MultipartFile file) {
+        String name = file.getOriginalFilename();
+        if (name == null) return null;
+        return id + name.substring(name.lastIndexOf("."));
     }
 }

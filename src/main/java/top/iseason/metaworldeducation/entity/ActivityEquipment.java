@@ -62,6 +62,9 @@ public class ActivityEquipment implements Serializable {
     @ApiModelProperty(value = "器材z缩放", example = "1.0")
     private Float scaleZ;
 
+    @ApiModelProperty(value = "是否隐藏", example = "0")
+    private Integer hide;
+
     @ApiModelProperty("操作的玩家, null表示无人操作")
     private Integer dealingPlayer;
 

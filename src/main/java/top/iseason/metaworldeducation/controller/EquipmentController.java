@@ -38,15 +38,16 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/equipment")
 public class EquipmentController {
-
+    protected static final String EQUIPMENT_DIR = System.getProperty("user.dir") + File.separatorChar + "equipments";
 
     @Resource
     PlayerMapper playerMapper;
 
     @Resource
     ActivityEquipmentMapper activityEquipmentMapper;
+
     @Resource
-    EquipmentInfoMapper labEquipmentMapper;
+    EquipmentInfoMapper equipmentInfoMapper;
 
     @ApiOperation(value = "上传并创建器材", notes = "'multipart/form-data' 协议")
     @Transactional
@@ -62,23 +63,28 @@ public class EquipmentController {
         labEquipment.setName(name);
         labEquipment.setPerfabName(perfabName);
         labEquipment.setCreateTime(new Date());
-        labEquipmentMapper.insert(labEquipment);
+        equipmentInfoMapper.insert(labEquipment);
         Integer eId = labEquipment.getEId();
+        if (thumbnailFile != null) labEquipment.setThumbnailName(FileUtil.concatName(eId.toString(), thumbnailFile));
+        if (assetFile != null) labEquipment.setAssetName(FileUtil.concatName(eId.toString(), assetFile));
+        if (sourceFile != null) labEquipment.setSourceName(FileUtil.concatName(eId.toString(), sourceFile));
+        equipmentInfoMapper.updateById(labEquipment);
         FileUtil.uploadFileTo(thumbnailFile, "thumbnail", eId);
         FileUtil.uploadFileTo(assetFile, "asset", eId);
         FileUtil.uploadFileTo(sourceFile, "source", eId);
         return Result.success(labEquipment);
     }
 
-
     @ApiOperation(value = "下载器材缩略图")
     @GetMapping(value = "/download/thumbnail/{id}", produces = "application/octet-stream")
     public Object downloadThumbnail(
             @ApiParam(value = "器材ID", required = true) @PathVariable Integer id
     ) throws Exception {
-        EquipmentInfo labEquipment = labEquipmentMapper.selectById(id);
+        EquipmentInfo labEquipment = equipmentInfoMapper.selectById(id);
         if (labEquipment == null) throw new IllegalArgumentException("器材不存在!");
-        File thumbnail = FileUtil.findFile("thumbnail", id);
+        File thumbnail =
+                new File(EQUIPMENT_DIR + File.separatorChar + "thumbnail" + File.separatorChar + labEquipment.getThumbnailName());
+        if (!thumbnail.exists()) throw new IllegalArgumentException("器材不存在!");
         InputStreamResource isr = new InputStreamResource(Files.newInputStream(thumbnail.toPath()));
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -91,13 +97,15 @@ public class EquipmentController {
     public Object downloadAsset(
             @ApiParam(value = "器材ID", required = true) @PathVariable Integer id
     ) throws Exception {
-        EquipmentInfo labEquipment = labEquipmentMapper.selectById(id);
+        EquipmentInfo labEquipment = equipmentInfoMapper.selectById(id);
         if (labEquipment == null) throw new IllegalArgumentException("器材不存在!");
-        File thumbnail = FileUtil.findFile("asset", id);
-        InputStreamResource isr = new InputStreamResource(Files.newInputStream(thumbnail.toPath()));
+        File asset =
+                new File(EQUIPMENT_DIR + File.separatorChar + "asset" + File.separatorChar + labEquipment.getAssetName());
+        if (!asset.exists()) throw new IllegalArgumentException("器材不存在!");
+        InputStreamResource isr = new InputStreamResource(Files.newInputStream(asset.toPath()));
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-disposition", "attachment; filename=" + URLEncoder.encode(thumbnail.getName(), "UTF-8"))
+                .header("Content-disposition", "attachment; filename=" + URLEncoder.encode(asset.getName(), "UTF-8"))
                 .body(isr);
     }
 
@@ -106,13 +114,15 @@ public class EquipmentController {
     public Object downloadEquipment(
             @ApiParam(value = "器材ID", required = true) @PathVariable Integer id
     ) throws Exception {
-        EquipmentInfo labEquipment = labEquipmentMapper.selectById(id);
+        EquipmentInfo labEquipment = equipmentInfoMapper.selectById(id);
         if (labEquipment == null) throw new IllegalArgumentException("器材不存在!");
-        File thumbnail = FileUtil.findFile("source", id);
-        InputStreamResource isr = new InputStreamResource(Files.newInputStream(thumbnail.toPath()));
+        File source =
+                new File(EQUIPMENT_DIR + File.separatorChar + "source" + File.separatorChar + labEquipment.getSourceName());
+        if (!source.exists()) throw new IllegalArgumentException("器材不存在!");
+        InputStreamResource isr = new InputStreamResource(Files.newInputStream(source.toPath()));
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-disposition", "attachment; filename=" + URLEncoder.encode(thumbnail.getName(), "UTF-8"))
+                .header("Content-disposition", "attachment; filename=" + URLEncoder.encode(source.getName(), "UTF-8"))
                 .body(isr);
     }
 
@@ -120,13 +130,26 @@ public class EquipmentController {
     @DeleteMapping(value = "/{id}", produces = "application/json")
     public Result<Object> delEquipment(
             @ApiParam(value = "器材ID", required = true) @PathVariable Integer id
-    ) throws Exception {
-        if (labEquipmentMapper.deleteById(id) == 0) {
+    ) {
+        EquipmentInfo equipmentInfo = equipmentInfoMapper.selectById(id);
+        if (equipmentInfo == null) {
             return Result.of(999, "器材不存在");
         }
-        FileUtil.findFile("thumbnail", id).deleteOnExit();
-        FileUtil.findFile("asset", id).deleteOnExit();
-        FileUtil.findFile("source", id).deleteOnExit();
+        equipmentInfoMapper.deleteById(id);
+        String thumbnailName = equipmentInfo.getThumbnailName();
+        if (thumbnailName != null) new File(
+                EQUIPMENT_DIR + File.separatorChar +
+                        "thumbnail" + File.separatorChar + thumbnailName).deleteOnExit();
+        String assetName = equipmentInfo.getAssetName();
+        if (assetName != null) new File(
+                EQUIPMENT_DIR + File.separatorChar +
+                        "asset" + File.separatorChar + assetName
+        ).deleteOnExit();
+        String sourceName = equipmentInfo.getSourceName();
+        if (sourceName != null) new File(
+                EQUIPMENT_DIR + File.separatorChar +
+                        "source" + File.separatorChar + sourceName
+        ).deleteOnExit();
         return Result.success();
     }
 
@@ -140,7 +163,7 @@ public class EquipmentController {
         if (page == null) page = 0;
         if (count == null) count = 10;
         return Result.success(
-                labEquipmentMapper.selectList(
+                equipmentInfoMapper.selectList(
                         new QueryWrapper<EquipmentInfo>()
                                 .last("limit " + page * count + "," + count)
                 )
@@ -166,7 +189,8 @@ public class EquipmentController {
             @ApiParam(value = "Z角", required = true) @RequestParam Float roaZ,
             @ApiParam(value = "X缩放", required = true) @RequestParam Float scaleX,
             @ApiParam(value = "Y缩放", required = true) @RequestParam Float scaleY,
-            @ApiParam(value = "Z缩放", required = true) @RequestParam Float scaleZ
+            @ApiParam(value = "Z缩放", required = true) @RequestParam Float scaleZ,
+            @ApiParam(value = "是否隐藏 0不隐藏 1隐藏") @RequestParam(required = false) Integer hide
     ) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
@@ -186,6 +210,7 @@ public class EquipmentController {
                 .setScaleX(scaleX)
                 .setScaleY(scaleY)
                 .setScaleZ(scaleZ);
+        if (hide != null) activityEquipment.setHide(hide);
         activityEquipmentMapper.insert(activityEquipment);
         return Result.success(activityEquipment);
     }
@@ -204,7 +229,8 @@ public class EquipmentController {
             @ApiParam("Z角") @RequestParam(required = false) Float roaZ,
             @ApiParam("X缩放") @RequestParam(required = false) Float scaleX,
             @ApiParam("Y缩放") @RequestParam(required = false) Float scaleY,
-            @ApiParam("Z缩放") @RequestParam(required = false) Float scaleZ
+            @ApiParam("Z缩放") @RequestParam(required = false) Float scaleZ,
+            @ApiParam("是否隐藏 0不隐藏 1隐藏") @RequestParam(required = false) Integer hide
     ) {
         PlayerInfo playerInfo = playerMapper.selectOne(new LambdaQueryWrapper<PlayerInfo>().eq(PlayerInfo::getUsrName, authentication.getName()));
         if (playerInfo == null) return Result.of(ResultCode.USER_NOT_LOGIN);
@@ -220,6 +246,7 @@ public class EquipmentController {
         if (scaleX != null) activityEquipment.setScaleX(scaleX);
         if (scaleY != null) activityEquipment.setScaleY(scaleY);
         if (scaleZ != null) activityEquipment.setScaleZ(scaleZ);
+        if (hide != null) activityEquipment.setHide(hide);
         activityEquipmentMapper.updateById(activityEquipment);
         return Result.success(activityEquipment);
     }

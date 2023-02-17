@@ -147,10 +147,13 @@ CREATE TABLE IF NOT EXISTS `goods_record`
 
 CREATE TABLE IF NOT EXISTS `equipment_info`
 (
-    `e_id`        int          NOT NULL AUTO_INCREMENT,
-    `name`        varchar(255) NOT NULL,
-    `perfab_name` varchar(255) NOT NULL,
-    `create_time` datetime     NOT NULL,
+    `e_id`           int          NOT NULL AUTO_INCREMENT,
+    `name`           varchar(255) NOT NULL,
+    `perfab_name`    varchar(255) NOT NULL,
+    `thumbnail_name` varchar(255) NULL,
+    `asset_name`     varchar(255) NULL,
+    `source_name`    varchar(255) NULL,
+    `create_time`    datetime     NOT NULL,
     PRIMARY KEY (`e_id`)
 );
 
@@ -167,6 +170,7 @@ CREATE TABLE IF NOT EXISTS `equipment_preset`
 (
     `ep_id`       int          NOT NULL AUTO_INCREMENT,
     `name`        varchar(255) NOT NULL,
+    `file_name`   varchar(255) NULL,
     `steps`       text         NULL,
     `theory`      text         NULL,
     `create_time` datetime     NULL,
@@ -191,6 +195,7 @@ CREATE TABLE IF NOT EXISTS `activity_equipment`
     `scale_x`        float  NOT NULL,
     `scale_y`        float  NOT NULL,
     `scale_z`        float  NOT NULL,
+    `hide`           int    NOT NULL,
     `dealing_player` int    NULL,
     PRIMARY KEY (`re_id`),
     UNIQUE INDEX `room_equipment_all` (`re_id`, `activity_id`, `desk_id`, `e_id`, `sub_id`, `creator_id`),

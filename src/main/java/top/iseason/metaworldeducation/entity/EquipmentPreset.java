@@ -45,6 +45,9 @@ public class EquipmentPreset implements Serializable {
     @ApiModelProperty(hidden = true)
     private String equipmentsField;
 
+    @ApiModelProperty(value = "预设文件名称", example = "1.xxx")
+    private String fileName;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "预设器材")
     private List<Integer> equipments;

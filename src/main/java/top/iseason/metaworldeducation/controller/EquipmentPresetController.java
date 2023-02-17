@@ -24,6 +24,8 @@ import java.nio.file.Files;
 import java.util.Date;
 import java.util.List;
 
+import static top.iseason.metaworldeducation.controller.EquipmentController.EQUIPMENT_DIR;
+
 @Slf4j
 @Api(tags = "实验室预设API")
 @RestController
@@ -51,8 +53,10 @@ public class EquipmentPresetController {
         equipmentPreset.setEquipmentsField(String.join(",", equipments));
         equipmentPresetMapper.insert(equipmentPreset);
         if (file != null) {
-            FileUtil.uploadFileTo(file, "preset", equipmentPreset.getEpId());
+            equipmentPreset.setFileName(FileUtil.concatName(equipmentPreset.getEpId().toString(), file));
+            equipmentPresetMapper.updateById(equipmentPreset);
         }
+        FileUtil.uploadFileTo(file, "preset", equipmentPreset.getEpId());
         return Result.success(equipmentPreset);
     }
 
@@ -79,8 +83,14 @@ public class EquipmentPresetController {
     public Result<Object> delPreset(
             @ApiParam(value = "实验预设ID", required = true) @PathVariable Integer id
     ) {
-        int i = equipmentPresetMapper.deleteById(id);
-        if (i != 1) return Result.of(999, "实验预设不存在");
+        EquipmentPreset equipmentPreset = equipmentPresetMapper.selectById(id);
+        if (equipmentPreset == null) return Result.of(999, "实验预设不存在");
+        equipmentPresetMapper.deleteById(id);
+        String fileName = equipmentPreset.getFileName();
+        if (fileName != null) {
+            new File(EQUIPMENT_DIR + File.separatorChar +
+                    "preset" + File.separatorChar + fileName).deleteOnExit();
+        }
         return Result.success();
     }
 
@@ -91,7 +101,11 @@ public class EquipmentPresetController {
     ) throws Exception {
         EquipmentPreset equipmentPreset = equipmentPresetMapper.selectById(id);
         if (equipmentPreset == null) throw new IllegalArgumentException("实验预设不存在!");
-        File preset = FileUtil.findFile("preset", id);
+        String fileName = equipmentPreset.getFileName();
+        if (fileName == null) throw new IOException("文件预设不存在");
+        File preset = new File(EQUIPMENT_DIR + File.separatorChar +
+                "preset" + File.separatorChar + fileName);
+        if (!preset.exists()) throw new IOException("文件预设不存在");
         InputStreamResource isr = new InputStreamResource(Files.newInputStream(preset.toPath()));
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
